@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/09eragera09/00-Unit/issues"
   },
-  "homepage": "https://github.com/09eragera09/00-Unit#readme"
+  "homepage": "https://github.com/09eragera09/00-Unit#readme",
+  "dependencies": {
+    "moment": "^2.19.1"
+  }
 }
