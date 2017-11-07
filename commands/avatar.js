@@ -16,11 +16,8 @@ module.exports.make = (bot) => {
             content: '',
             embed: {
                 color: 0x91244e,
-                author: {
-                    name: `${message.author.username}#${message.author.discriminator}`,
-                    icon_url: `${message.author.avatarURL}`
-                },
-                thumbnail: {
+                title: `${message.author.username}#${message.author.discriminator}`,
+                image: {
                     url: `${message.author.avatarURL}`
                 }
             }
