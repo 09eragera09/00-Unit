@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/09eragera09/00-Unit#readme",
   "dependencies": {
-    "moment": "^2.19.1"
+    "moment": "^2.19.1",
+    "require-directory": "^2.1.1"
   }
 }
