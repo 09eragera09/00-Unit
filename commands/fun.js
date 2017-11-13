@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports.make = (bot) => {
     var fun = bot.registerCommand("fun", "The following commands are available:- shitwaifu\nPut them after the fun command as subcommands to use.\nIf you have any fun stuff you would like to see in this command, talk to the owner.", {
         description: "A command that holds other basic fun subcommands",

@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports.make = (bot) => {
     var textfaces = bot.registerCommand("textfaces", "Has the following faces: \n- lenny\n- fiteme\n- shrug\n- tableflip\n- unflip\n- hug\nYou can request for more to be added by asking the owner.")
     textfaces.registerSubcommand("lenny", '( ͡° ͜ʖ ͡°)');

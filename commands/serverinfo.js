@@ -1,16 +1,18 @@
+"use strict";
+
 const moment = require('moment')
 
 module.exports.make = (bot) => {
     bot.registerCommand('serverinfo', (message, args) => {
-        server = message.channel.guild
-        onlinecount = []
+        var server = message.channel.guild
+        var onlinecount = []
         server.members.forEach(function(member) {
             if (member.status != "offline") {
                 onlinecount.push(member)
             }
         }, this);
         var owner = server.members.get(server.ownerID)
-        embed = {
+        var embed = {
             color: 0x91244e,
             type: 'rich',
             author: {

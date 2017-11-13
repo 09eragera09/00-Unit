@@ -1,3 +1,5 @@
+"use strict";
+
 const Eris = require('eris');
 var config = require('./config.json');
 var cmds = require('./commands');

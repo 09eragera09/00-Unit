@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports.make = (bot) => {
     bot.registerCommand("ping", (message, args) => {
         var before = new Date();

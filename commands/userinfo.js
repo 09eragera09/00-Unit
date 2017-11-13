@@ -1,22 +1,24 @@
+"use strict";
+
 const moment = require('moment')
 
 module.exports.make = (bot) => {
     bot.registerCommand("userinfo", (message, args)=> {
         if (args == 0) {
-            username = message.author.username
+            var username = message.author.username
         }
         else if (message.mentions.length > 0 && !message.mentionEveryone) {
-            username = message.mentions[0].username
+            var username = message.mentions[0].username
         }
         else {
-            username = args[0]
+            var username = args[0]
         }
         //This is going to be slow as shit....
-        member = message.channel.guild.members.find(m => {
+        var member = message.channel.guild.members.find(m => {
             if (m.username == username || m.nick == username) return true;
         })
         var id = message.channel.guild.members.get(member.id)
-        embed = {
+        var embed = {
             color: 0x91244e,
             type: 'rich',
             author: {

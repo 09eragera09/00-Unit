@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/09eragera09/00-Unit#readme",
   "dependencies": {
+    "eris": "^0.8.1",
     "lodash.random": "^3.2.0",
     "moment": "^2.19.1",
     "require-directory": "^2.1.1"

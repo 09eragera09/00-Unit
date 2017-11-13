@@ -1,3 +1,5 @@
+"use strict";
+
 const moment = require('moment');
 var startup = Date.now();
 var config = require('../config.json')
@@ -11,7 +13,7 @@ module.exports.make = (bot) => {
         var minutes = parseInt(totalminutes%60);
         var days = parseInt(totalhours/24);
         var hours = parseInt(totalhours%24)
-        embed = {
+        var embed = {
             title: `${bot.user.username}#${bot.user.discriminator}`,
             description: `A shitty bot written in JS`,
             color: 0x91244e,
