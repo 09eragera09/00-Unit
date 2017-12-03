@@ -5,5 +5,5 @@ module.exports.make = (bot) => {
         description: "A command that holds other basic fun subcommands",
         fullDescription: "A command that holds other basic fun subcommands, such as textfaces and a saber meme. Tell Era#4669 if you have more stuff you'd like added."
     })
-    fun.registerSubcommand("shittywaifu", "http://i2.kym-cdn.com/photos/images/original/000/756/008/29d.jpg");
+    fun.registerSubcommand("shitwaifu", "http://i2.kym-cdn.com/photos/images/original/000/756/008/29d.jpg");
 } 
