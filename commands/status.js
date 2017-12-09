@@ -34,5 +34,8 @@ module.exports.make = (bot) => {
             content: '',
             embed: embed
         })
+    }, {
+        description: "Returns the bot status",
+        fullDescription: "Returns the bot's status, including uptime and bot owner."
     })
 }

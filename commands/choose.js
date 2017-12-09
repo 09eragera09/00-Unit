@@ -7,5 +7,8 @@ module.exports.make = (bot) => {
         var choiceResult = args.join("").split("|");
         bot.createMessage(message.channel.id, {
             content: `${choiceResult[random(choiceResult.length -1)]}`})
+        }, {
+            description: "Chooses from given arguments",
+            fullDescription: "Chooses one from given arguments. Arguments must be split with a `|`"
         })
 }

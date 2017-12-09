@@ -29,7 +29,6 @@ module.exports.make = (bot) => {
         })
     }, {
         description: "A ping command",
-        fullDescription: "A ping command, to keep you entertained.",
-        usage: "<text>"
+        fullDescription: "A ping command, to keep you entertained."
     })  
 }

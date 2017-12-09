@@ -12,5 +12,8 @@ module.exports.make = (bot) => {
             content: `${_8ball_array[random(_8ball_array.length - 1)]}`
         })
         
+    }, {
+        description: "Magic 8ball will help you solve all your troubles",
+        fullDescription: "Returns 1 of 8 yes/no/maybe messages."
     })
 }

@@ -24,5 +24,8 @@ module.exports.make = (bot) => {
                 }
             }
         })
+    }, {
+        description: "Returns a user avatar",
+        fullDescription: "Returns a user avatar. Accepts message mentions and single word usernames/nicknames, else defaults to message author"
     })
 }
