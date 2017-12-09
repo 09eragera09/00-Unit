@@ -2,48 +2,65 @@
 const cheerio = require('cheerio');
 const axios = require('axios')
 
-module.exports.make = (bot) => {
-    bot.registerCommand("booru", (message, args) => {
-        let imageURL;
-        axios.get(`https://gelbooru.com/index.php?page=post&s=list&tags=${args.join('+')}`).then(response => {
-            let html = response.data;
-            let $ = cheerio.load(html);
-            let pageinationLinksCount = $('.pagination a').length + 1;
-            console.log(pageinationLinksCount)
-            let randomIndex = Math.floor(Math.random() * pageinationLinksCount);
-            console.log(randomIndex)
-            let randomLink = $(`.pagination a:nth-of-type(${randomIndex > 0 ? randomIndex : 1})`).attr('href');
-            if (randomIndex <= 1) {
-                randomLink = `?page=post&s=list&tags=${args.join('+')}`
-            }
-            axios.get(`https://gelbooru.com/index.php${randomLink}`).then(response => {
-                const html = response.data;
+module.exports.make = async (bot) => {
+    await bot.registerCommand("booru", async (message, args) => {
+        try {
+            const allListings = await axios.get(`https://gelbooru.com/index.php?page=post&s=list&tags=${args.join('+')}`);
+            let pageLink = ((allListings) => {
+                let html = allListings.data;
+                let $ = cheerio.load(html);
+                let pageinationLinksCount = $('.pagination a').length + 1;
+                let randomIndex = Math.floor(Math.random() * pageinationLinksCount);
+                let randomLink = $(`.pagination a:nth-of-type(${randomIndex > 0 ? randomIndex : 1})`).attr('href');
+                if (randomIndex <= 1) {
+                    randomLink = `?page=post&s=list&tags=${args.join('+')}`
+                }
+                return randomLink;
+            })(allListings)
+            const pageListings = await axios.get(`https://gelbooru.com/index.php${pageLink}`);
+            let postID = ((pageListings)=>{
+                const html = pageListings.data;
                 let $ = cheerio.load(html);
                 let postCount = $('.contain-push .thumbnail-preview').length;
                 let randomIndex  = Math.floor(Math.random() * postCount);
-                let randomPost = $(`.contain-push .thumbnail-preview:nth-of-type(${randomIndex > 0 ? randomIndex : 1})`)
-                let randomPostID = randomPost.find('a').attr('href').split('&id=').pop()
-                axios.get('http://gelbooru.com/index.php', {
-                    params: {
-                        page: 'dapi',
-                        q: 'index',
-                        s: 'post',
-                        id: `${randomPostID}`,
-                        json: '1'
-                    }
-                }).then(results => bot.createMessage(message.channel.id, {
-                    content: ``,
+                let randomPost = $(`.contain-push .thumbnail-preview:nth-of-type(${randomIndex > 0 ? randomIndex : 1})`);
+                let randomPostID = randomPost.find('a').attr('href').split('&id=').pop();
+                return randomPostID
+            })(pageListings)
+            const image = await axios.get('http://gelbooru.com/index.php', {
+                params: {
+                    page: 'dapi',
+                    q: 'index',
+                    s: 'post',
+                    id: `${postID}`,
+                    json: '1'
+                }});
+            ((image) => {
+                bot.createMessage(message.channel.id, {
+                    content:'',
                     embed: {
                         color: 0x91244e,
+                        fields: [{
+                            name: `View in Browser`,
+                            value: `https://gelbooru.com/index.php?page=post&s=view&id=${image.data[0].id}`
+                        }, {
+                            name: `Source`,
+                            value: `${image.data[0].file_url}`
+                        }, {
+                            name: `Rating`,
+                            value: `${image.data[0].rating == 's' ? `Safe` : image.data[0] == 'q' ? `Questionable` : `Explicit`}`
+                        }],
                         image: {
-                            url: `${results.data[0].file_url}`
+                            url: `${image.data[0].file_url}`
                         }}
-                }));
-            }).catch((err) => {
-                console.log(err.stack);
-            });
-        }).catch((err) => {
-            console.log(err.stack);
-        });
+                    })
+            })(image)
+        } catch (err) {
+            console.error(err.stack);
+        }
+
+    }, {
+        description: "Generic gelbooru search",
+        fullDescription: "Searches gelbooru for particular tags and returns items picked randomly from returned search list. Accepts all meta tags."
     })
 }
