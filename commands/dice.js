@@ -3,6 +3,7 @@ const d20 = require('d20');
 
 module.exports.make = (bot) => {
     bot.registerCommand("roll", (message, args) => {
+        if (args.length <= 0) { return }
         let array1 = args.toString().split("#");
         let roll = d20.roll(array1[0], true);
         let rollString = roll.join("+");

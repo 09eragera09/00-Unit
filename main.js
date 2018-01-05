@@ -5,7 +5,7 @@ var config = require('./config.json');
 var cmds = require('./commands');
 
 var bot = new Eris.CommandClient(config.token, {}, {
-    description: "A shitty bot made with Eris in JS",
+    description: "A shitty bot made with Eris in Node.js",
     owner: "09eragera09",
     prefix: config.prefix
 });
