@@ -17,6 +17,12 @@ module.exports.make = (bot) => {
         var member = message.channel.guild.members.find(m => {
             if (m.username == username || m.nick == username) return true;
         })
+        if (member === undefined) {
+            bot.createMessage(message.channel.id, {
+                content: "User not found. Please check if there are typos. Search terms are case sensitive."
+            });
+            return
+        }
         var id = message.channel.guild.members.get(member.id)
         var embed = {
             color: 0x91244e,
