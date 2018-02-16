@@ -1,6 +1,8 @@
 'use strict';
 const popura = require('popura');
 const config = require('../config.json');
+const Entities = require('html-entities').AllHtmlEntities;
+const entities = new Entities();
 
 module.exports.make = (bot) => {
     const client = popura(config.username, config.malpassword);
@@ -25,11 +27,10 @@ module.exports.make = (bot) => {
                         if (mesg.author == message.author && parseInt(mesg.content) <= animeArray.length) {
                             if (invokedWith == "manga") {var embedS = mangaEmbed(animeArray[parseInt(mesg.content) - 1])}
                             else {var embedS = animeEmbed(animeArray[parseInt(mesg.content) - 1])}
-                            console.log(embedS);
                             bot.createMessage(message.channel.id, {content: '', embed: embedS})
                         }
                     })
-                }).catch(err => console.log(err))}, 4000)
+                }).catch(err => console.log(err))}, 7000)
             })
         }
     }
@@ -65,6 +66,10 @@ module.exports.make = (bot) => {
             anime.synopsis = anime.synopsis.slice(0, 1019);
             anime.synopsis += '...'
         }
+        else if (anime.synopsis.length <= 0) {
+            anime.synopsis = "No Synopsis."
+        }
+        anime.synopsis = entities.decode(anime.synopsis);
         let embed = {
             color: 0x91244e,
             type: 'rich',
@@ -90,6 +95,10 @@ module.exports.make = (bot) => {
             manga.synopsis = manga.synopsis.slice(0, 1019);
             manga.synopsis += '...'
         }
+        else if (manga.synopsis.length <= 0) {
+            manga.synopsis = "No Synopsis."
+        }
+        manga.synopsis = entities.decode(manga.synopsis);
         let embed = {
             color: 0x91244e,
             type: 'rich',
@@ -97,7 +106,7 @@ module.exports.make = (bot) => {
                 name: `${manga.title}`,
                 icon_url: `${manga.image}`
             },
-            description: `http://myanimelist.net/anime/${manga.id}`,
+            description: `http://myanimelist.net/manga/${manga.id}`,
             thumbnail: {
                 url: `${manga.image}`
             },
