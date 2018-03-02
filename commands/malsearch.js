@@ -17,8 +17,8 @@ module.exports.make = (bot) => {
         else if (animeArray.length > 1) {
             for (var i = 0; i < animeArray.length; i++) {
                 let element = {};
-                element.name = String(i+1);
-                element.value = animeArray[i].title;
+                element.name = '​​';
+                element.value = String(i+1) + ': ' + animeArray[i].title;
                 embedAll.fields.push(element);
             }
             bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {

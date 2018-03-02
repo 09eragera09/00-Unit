@@ -25,6 +25,8 @@
     "lodash.random": "^3.2.0",
     "moment": "^2.20.1",
     "popura": "^1.2.5",
-    "require-directory": "^2.1.1"
+    "require-directory": "^2.1.1",
+    "vndb": "^0.1.0",
+    "vndbjs": "^1.0.1"
   }
 }
