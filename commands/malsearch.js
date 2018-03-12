@@ -16,10 +16,11 @@ module.exports.make = (bot) => {
         }
         else if (animeArray.length > 1) {
             for (var i = 0; i < animeArray.length; i++) {
-                let element = {};
+                /*let element = {};
                 element.name = '​​';
                 element.value = String(i+1) + ': ' + animeArray[i].title;
-                embedAll.fields.push(element);
+                embedAll.fields.push(element);*/
+                embedAll.description = embedAll.description + `\n${i+1}: ${animeArray[i].title}`
             }
             bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
                 setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
@@ -42,7 +43,7 @@ module.exports.make = (bot) => {
                 name: `MAL Search for term "${argv.join(' ')}"`,
                 icon_url: `${bot.user.avatarURL}`
             },
-            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.`,
+            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
             fields: []
         }
         client.searchAnimes(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message)).catch(err => console.log(err))
@@ -56,7 +57,7 @@ module.exports.make = (bot) => {
                 name: `MAL Search for term "${argv.join(' ')}"`,
                 icon_url: `${bot.user.avatarURL}`
             },
-            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.`,
+            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
             fields: []
         }
         let invokedWith = "manga";

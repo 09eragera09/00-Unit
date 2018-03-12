@@ -14,7 +14,7 @@ module.exports.make = async (bot) => {
                 name: `VNDB search for term "${argv.join(' ')}"`,
                 icon_url: `${bot.user.avatarURL}`
             },
-            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.`,
+            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
             fields: []
         }
         let fuckme = await vndb.write(`get vn basic,details,stats (search ~ "${argv.join(' ')}"){"sort": "rating", "reverse": true}`);
@@ -26,10 +26,11 @@ module.exports.make = async (bot) => {
         }
         else if (res1.items.length > 1) {
             for (var i = 0; i < res1.items.length; i++) {
-                let element = {};
+                /*let element = {};
                 element.name = '​​';
                 element.value = String(i+1) + ': ' + res1.items[i].title;
-                embedAll.fields.push(element);
+                embedAll.fields.push(element);*/
+                embedAll.description = embedAll.description + `\n${i+1}: ${res1.items[i].title}`
             }
             bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
                 setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
