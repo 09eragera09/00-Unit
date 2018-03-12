@@ -72,7 +72,7 @@ module.exports.make = async (bot) => {
             return(embed)
         }
     }, {
-        description: "Generic gelbooru search",
-        fullDescription: "Searches gelbooru for particular tags and returns items picked randomly from returned search list. Accepts all meta tags."
+        description: "Generic vndb search",
+        fullDescription: "Searches vndb for vn names and returns items from returned search list."
     })
 }

@@ -46,7 +46,8 @@ module.exports.make = (bot) => {
             fields: []
         }
         client.searchAnimes(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message)).catch(err => console.log(err))
-    })
+    }, {description: "Searches MAL for anime",
+        fullDescription: "Searches MAL for anime. Accepts anime names as arguments, returns a list of valid names"})
     bot.registerCommand("manga", (message, argv) => {
         let embedAll = {
             color: 0x91244e,
@@ -60,7 +61,8 @@ module.exports.make = (bot) => {
         }
         let invokedWith = "manga";
         client.searchMangas(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message, invokedWith)).catch(err => console.log(err))
-    })
+    }, {description: "Searches MAL for manga",
+        fullDescription: "Searches MAL for manga. Accepts manga names as arguments, returns a list of valid names"})
     var animeEmbed = (anime) => {
         if (anime.synopsis.length >= 1024) {
             anime.synopsis = anime.synopsis.slice(0, 1019);
