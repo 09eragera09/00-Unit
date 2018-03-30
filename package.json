@@ -21,6 +21,7 @@
     "cheerio": "^1.0.0-rc.2",
     "d20": "^1.4.1",
     "eris": "^0.8.5",
+    "howlongtobeat": "^1.0.10",
     "html-entities": "^1.2.1",
     "lodash.random": "^3.2.0",
     "moment": "^2.21.0",
