@@ -4,6 +4,7 @@ const moment = require('moment')
 
 module.exports.make = (bot) => {
     bot.registerCommand('serverinfo', (message, args) => {
+        if (message.channel.type == 1) {return}
         var server = message.channel.guild
         var onlinecount = []
         server.members.forEach(function(member) {

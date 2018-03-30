@@ -4,6 +4,7 @@ const moment = require('moment')
 
 module.exports.make = (bot) => {
     bot.registerCommand("userinfo", (message, args)=> {
+        if (message.channel.type == 1) {return}
         if (args == 0) {
             var username = message.author.username
         }

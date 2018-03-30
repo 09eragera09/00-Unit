@@ -6,6 +6,7 @@ var config = require('../config.json')
 
 module.exports.make = (bot) => {
     bot.registerCommand("status", (message, args) => {
+        if (message.channel.type == 1) {return}
         var totalseconds = (Date.now() - startup)/1000;
         var totalminutes = parseInt(totalseconds/60);
         var seconds = parseInt(totalseconds%60);

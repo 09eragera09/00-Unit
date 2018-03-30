@@ -2,6 +2,7 @@
 
 module.exports.make = (bot) => {
     bot.registerCommand("avatar", (message, args) => {
+        if (message.channel.type == 1) {return}
         if (args == 0) {
            var username = message.author.username;
         }
