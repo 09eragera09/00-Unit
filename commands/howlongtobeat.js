@@ -1,60 +1,126 @@
-"use strict";
+'use strict';
 
-const hltb = require("howlongtobeat");
-const hltbService = new hltb.HowLongToBeatService()
+const hltb = require('howlongtobeat');
+const hltbService = new hltb.HowLongToBeatService();
+
+const cache = {};
 
 module.exports.make = async (bot) => {
-    await bot.registerCommand('hltb',async (message, argv) => {
-        let embedAll = {
-            color: 0x91244e,
-            type: 'rich',
-            author: {
-                name: `HowLongToBeat search for term "${argv.join(' ')}"`,
-                icon_url: `${bot.user.avatarURL}`
+
+    await bot.registerCommand('showme', async (message, argv) => {
+
+        const cached = cache[message.author.id];
+
+        if(!cached) {
+
+            bot.createMessage(message.channel.id, {
+                content: `I'm sorry, I don't have any saved searches for you. Please use !hltb <game> again!`
+            });
+
+            return;
+
+        }
+
+        const num = parseInt(argv[0], 10);
+
+        if(isNaN(num)) {
+
+            bot.createMessage(message.channel.id, {
+                content: `I'm sorry, but that's not a valid number. Please try again.`
+            });
+
+            return;
+
+        }
+
+        const { result, search } = cached;
+        const answer = result[num - 1];
+
+        if(!answer) {
+
+            bot.createMessage(message.channel.id, {
+                content: `I'm sorry, it seems you picked a number not in the result list. Please try again.`
+            });
+
+            return;
+
+        }
+
+        bot.createMessage(message.channel.id, {
+            content: '',
+            embed: embedSingle(answer, search)
+        });     
+
+    });
+
+    await bot.registerCommand('hltb', async (message, argv) => {
+
+        let search = argv.join(' ');
+        let result = await hltbService.search(search);
+
+        if (result.length === 0) {
+
+            bot.createMessage(message.channel.id, {
+                content: 'Search returned no results.'
+            });
+
+        } else if (result.length === 1) {
+
+            bot.createMessage(message.channel.id, {
+                content: '',
+                embed: embedSingle(result[0], search)
+            });
+
+        } else if (result.length > 1) {
+
+            cache[message.author.id] = {
+                result: result,
+                search: search
+            };
+
+            bot.createMessage(message.channel.id, {
+                content: '',
+                embed: embedMultiple(result, search)
+            });
+
+        }
+
+    });
+
+    const embedSingle = (result, search) => ({
+        color: 0x91244e,
+        type: 'rich',
+        author: {
+            name: `${result.name}`,
+            icon_url: `${result.imageUrl}`
+        },
+        description: `https://howlongtobeat.com/game.php?id=${result.id}`,
+        thumbnail: {
+            url: `${result.imageUrl}`
+        },
+        fields: [
+            {
+                name: 'Main Story',
+                value: `${result.gameplayMain} hours`
             },
-            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
-            fields: []
-        }
-        let res1 = await hltbService.search(argv.join(' '))
-        console.log(res1)
-        if (res1.length == 0) { bot.createMessage(message.channel.id, {content: "Search returned no results."})}
-        else if (res1.length == 1) {
-            var embed = hltbEmbed(res1[0]);
-            bot.createMessage(message.channel.id, {content:'', embed: embed})
-        }
-        else if (res1.length > 1) {
-            for (var i = 0; i < res1.length; i++) {
-                embedAll.description = embedAll.description + `\n${i+1}: ${res1[i].name}`
+            {
+                name: 'Completionist',
+                value: `${result.gameplayCompletionist} hours`
             }
-            bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
-                setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
-                    messageArray.forEach((mesg) => {
-                        if (mesg.author == message.author && parseInt(mesg.content) <= res1.length) {
-                            var embedS = hltbEmbed(res1[parseInt(mesg.content) - 1])
-                            bot.createMessage(message.channel.id, {content: '', embed: embedS})
-                        }
-                    })
-                }).catch(err => console.log(err))}, 7000)
-            })
-        }
-    })
-    function hltbEmbed(hltbRes) {
-        let embed = {
-            color: 0x91244e,
-            type: 'rich',
-            author: {
-                name: `${hltbRes.name}`,
-                icon_url: `${hltbRes.imageUrl}`
-            },
-            description: `https://howlongtobeat.com/game.php?id=${hltbRes.id}`,
-            thumbnail: {
-                url: `${hltbRes.imageUrl}`
-            },
-            fields: [
-                {name: 'Main Story', value: `${hltbRes.gameplayMain} hours`},
-                {name: 'Completionist', value: `${hltbRes.gameplayCompletionist} hours`}
-            ]
-        }
-        return(embed)
-    }
+        ]
+    });
+
+    const concatDescriptions = (descriptions) => descriptions.map((desc, idx) => `${idx + 1}: ${desc.name}`);
+
+    const embedMultiple = (result, search) => ({
+        color: 0x91244e,
+        type: 'rich',
+        author: {
+            name: `HowLongToBeat search for term '${search}'`,
+            icon_url: `${bot.user.avatarURL}`
+        },
+        description: `The search contains more than 1 result. Please say !showme <number> with the appropriate entry number in order to view its details.\n\n${concatDescriptions(result).join('\n')}`,
+        fields: []
+    });
+
 }
