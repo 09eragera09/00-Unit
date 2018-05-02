@@ -17,4 +17,12 @@ for (let o in cmds) {
     cmds[o].make(bot)
 }
 
-bot.connect();
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+async function start(bot){
+    bot.connect();
+    await sleep(10000);
+    await start(bot);
+}
+start(bot);
