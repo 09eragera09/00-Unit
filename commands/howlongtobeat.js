@@ -16,7 +16,6 @@ module.exports.make = async (bot) => {
             fields: []
         }
         let res1 = await hltbService.search(argv.join(' '))
-        console.log(res1)
         if (res1.length == 0) { bot.createMessage(message.channel.id, {content: "Search returned no results."})}
         else if (res1.length == 1) {
             var embed = hltbEmbed(res1[0]);
