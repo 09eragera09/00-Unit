@@ -1,15 +1,12 @@
 "use strict";
 const cheerio = require("cheerio");
 const axios = require("axios");
-const fs = require('fs')
-
 module.exports.make = async (bot) => {
     //await bot.registerCommand("steam", "This contains nothing yet.")
     await bot.registerCommand("steam", async (message, args) => {
         try {
             let url = "https://store.steampowered.com/search/?term=";
             let resp = await axios.get(`${url+args.join("+")}`);
-            fs.writeFileSync('steamSearch.html', resp.data);
             let $ = cheerio.load(resp.data)
             let items = [];
             $('div#search_result_container div a.search_result_row').each((index, item) => {
