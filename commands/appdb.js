@@ -1,7 +1,6 @@
 "use strict";
 const cheerio = require('cheerio');
 const axios = require('axios')
-const fs = require('fs');
 
 module.exports.make = async (bot) => {
     await bot.registerCommand("appdb", async (message, args) => {
@@ -65,12 +64,17 @@ module.exports.make = async (bot) => {
                     type: 'rich',
                     author: {
                         name: `${appDBInfo.name}`,
+                        url: `${appDBInfo.pageURL}`
                         },
                     description: `${appDBInfo.description}`,
                     fields: [
                         {name: 'Latest version rating', value: `${appDBInfo.rating}`},
                         {name: 'Link', value: `${appDBInfo.pageURL}`}
-                    ]
+                    ],
+                    footer: {
+                        text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
+                        icon_url: bot.user.avatarURL
+                    }
                 }
                 return(embed)
 

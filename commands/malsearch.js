@@ -89,7 +89,11 @@ module.exports.make = (bot) => {
                 {name: 'Episodes', value: `${anime.episodes}`},
                 {name: 'Score', value: `${anime.score}`},
                 {name: 'Status', value: `${anime.status}`}
-            ]
+            ],
+            footer: {
+                text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
+                icon_url: bot.user.avatarURL
+            }
         }
         return(embed)
     }
@@ -107,7 +111,7 @@ module.exports.make = (bot) => {
             type: 'rich',
             author: {
                 name: `${manga.title}`,
-                icon_url: `${manga.image}`
+                icon_url: `${manga.image}`,
             },
             description: `http://myanimelist.net/manga/${manga.id}`,
             thumbnail: {
@@ -118,7 +122,11 @@ module.exports.make = (bot) => {
                 {name: 'Chapters', value: `${manga.chapters}`},
                 {name: 'Score', value: `${manga.score}`},
                 {name: 'Status', value: `${manga.status}`}
-            ]
+            ],
+            footer: {
+                text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
+                icon_url: bot.user.avatarURL
+            }
         }
         return(embed)
     }

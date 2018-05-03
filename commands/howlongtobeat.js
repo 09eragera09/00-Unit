@@ -52,7 +52,11 @@ module.exports.make = async (bot) => {
             fields: [
                 {name: 'Main Story', value: `${hltbRes.gameplayMain} hours`},
                 {name: 'Completionist', value: `${hltbRes.gameplayCompletionist} hours`}
-            ]
+            ],
+            footer: {
+                text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
+                icon_url: bot.user.avatarURL
+            }
         }
         return(embed)
     }

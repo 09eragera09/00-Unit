@@ -68,7 +68,11 @@ module.exports.make = async (bot) => {
                     {name: 'Length', value: `${vndbRes.length == 5 ? 'Very Long (> 50 hours)': vndbRes.length == 4 ? "Long (30-50 hours)": vndbRes.length == 3 ? "Medium (10-30 hours)": vndbRes.length == 2 ? "Short (2-10 hours)": vndbRes.length == 1 ? "Very Short (< 2 hours)": "Length could not be deciphered!!11!"}`},
                     {name: 'Rating', value: `${vndbRes.rating}`},
                     {name: 'Original Language', value: `${vndbRes.orig_lang}`}
-                ]
+                ],
+                footer: {
+                    text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
+                    icon_url: bot.user.avatarURL
+                }
             }
             return(embed)
         }
