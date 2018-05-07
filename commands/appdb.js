@@ -82,9 +82,10 @@ module.exports.make = async (bot) => {
         async function appdbResolve(item) {
             let myPage = await axios.get(item.link);
             let $ = cheerio.load(myPage.data);
+            let text1 = ". For more information, see the link below."
             let appDBInfo = {
                 name: `${$('h1.whq-app-title').text()}`,
-                description: `${$('.col-xs-7').text().trim().substring(20).trim().replace(/\s+/g, ' ')}`,
+                description: `${$('.col-xs-7').text().trim().substring(20).trim().replace(/\s+/g, ' ').split('.').splice(0, 3).join('.') + text1}`,
                 rating: `${$(`table.whq-table tbody`).children().last().children(`td:nth-child(3)`).text()}`,
                 pageURL: `${item.link}`
             }
