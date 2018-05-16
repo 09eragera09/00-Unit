@@ -8,13 +8,20 @@ module.exports.make = async (bot) => {
             let url = "https://store.steampowered.com/search/?term=";
             let resp = await axios.get(`${url+args.join("+")}`);
             let $ = cheerio.load(resp.data)
-            let items = [];
+            let itemsAll = [];
             $('div#search_result_container div a.search_result_row').each((index, item) => {
-                items.push({
+                itemsAll.push({
                     title: `${$(item).find('span.title').text()}`,
                     link: `${$(item).attr('href').split('?')[0]}`
                 });
             });
+            let items = [];
+            itemsAll.forEach(i => {
+                if (i.title.toUpperCase().indexOf(args.join(' ').toUpperCase()) > -1) {
+                    items.push(i)
+                }
+            })
+            console.log(items)
             let embedAll = {
                 color: 0x91244e,
                 type: 'rich',

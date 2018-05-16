@@ -23,6 +23,10 @@ function sleep(ms) {
 async function start(bot){
     bot.connect();
     await sleep(10000);
+    try {
+        bot.disconnect();
+    } catch (err) {}
+    await sleep(10000)
     await start(bot);
 }
 start(bot);

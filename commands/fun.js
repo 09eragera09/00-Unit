@@ -41,4 +41,9 @@ module.exports.make = (bot) => {
         description: "Abuses the user",
         fullDescription: "Abuses the mentioned user. Accepts Usernames, User Mentions, and Message Author as proper arguments."
     })
+    bot.registerCommand("say", (message, args) => {
+        bot.createMessage(message.channel.id, {
+            content: `${args.join(' ')}`
+        })
+    })
 } 
