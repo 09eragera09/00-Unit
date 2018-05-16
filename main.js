@@ -21,12 +21,12 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 async function start(bot){
-    bot.connect();
-    await sleep(10000);
     try {
-        bot.disconnect();
-    } catch (err) {}
-    await sleep(10000)
-    await start(bot);
+        bot.connect();
+    } catch (e) {
+        if (e instanceof ConnectionResetError) {
+            await start(bot);
+        }
+    }
 }
 start(bot);
