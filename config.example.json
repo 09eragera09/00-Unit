@@ -1,0 +1,4 @@
+{
+    "token": "<discord_token_string>",
+    "prefix": "<command_prefix_string>"
+}
