@@ -35,10 +35,10 @@ module.exports.make = async (bot) => {
             if (items.length == 0) { bot.createMessage(message.channel.id, {content: "Search returned no results."})}
             else if (items.length == 1) {
                 let SteamInfo = await SteamResolve(items[0]);
-                let SteamEmbed = SteamEmbed(SteamInfo);
+                let SteamEmbed2 = SteamEmbed(SteamInfo);
                 bot.createMessage(message.channel.id, {
                     content: '',
-                    embed: SteamEmbed
+                    embed: SteamEmbed2
                 })
             }
             else if (items.length > 1) {
