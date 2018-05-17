@@ -28,6 +28,7 @@
     "popura": "^1.2.5",
     "require-directory": "^2.1.1",
     "vndb": "^0.1.0",
-    "vndbjs": "^1.0.1"
+    "vndbjs": "^1.0.1",
+    "xregexp": "^4.1.1"
   }
 }

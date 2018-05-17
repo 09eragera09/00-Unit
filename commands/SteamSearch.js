@@ -1,6 +1,7 @@
 "use strict";
 const cheerio = require("cheerio");
-const axios = require("axios");
+const axios = require("axios")
+const XregExp = require('xregexp')
 module.exports.make = async (bot) => {
     //await bot.registerCommand("steam", "This contains nothing yet.")
     await bot.registerCommand("steam", async (message, args) => {
@@ -17,11 +18,13 @@ module.exports.make = async (bot) => {
             });
             let items = [];
             itemsAll.forEach(i => {
-                if (i.title.toUpperCase().indexOf(args.join(' ').toUpperCase()) > -1) {
+                let cregx = new XregExp("([^\\p{L}\\p{N}\\s]+)", "g");
+                let search = XregExp.replace(args.join(' ').toUpperCase(), cregx, '');
+                let title = XregExp.replace(i.title.toUpperCase(), cregx, '');
+                if ((title).indexOf(search) != -1) {
                     items.push(i)
                 }
             })
-            console.log(items)
             let embedAll = {
                 color: 0x91244e,
                 type: 'rich',
