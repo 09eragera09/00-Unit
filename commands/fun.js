@@ -45,5 +45,7 @@ module.exports.make = (bot) => {
         bot.createMessage(message.channel.id, {
             content: `${args.join(' ')}`
         })
+    },{
+        description: "Make the bot say stuff",
     })
 } 

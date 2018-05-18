@@ -106,5 +106,7 @@ module.exports.make = async (bot) => {
             return(embed)
 
         }
+    }, {
+        description: "Generic Steam Search"
     })
 }

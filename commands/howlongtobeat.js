@@ -36,6 +36,8 @@ module.exports.make = async (bot) => {
                 }).catch(err => console.log(err))}, 7000)
             })
         }
+    },  {
+        description: "Generic HowLongToBeat search",
     })
     function hltbEmbed(hltbRes) {
         let embed = {
