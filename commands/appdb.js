@@ -1,9 +1,19 @@
 "use strict";
 const cheerio = require('cheerio');
 const axios = require('axios')
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = async (bot) => {
+module.exports.make = async (bot, conn) => {
     await bot.registerCommand("appdb", async (message, args) => {
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         try {
             let url = "https://appdb.winehq.org/objectManager.php?bIsQueue=false&bIsRejected=false&sClass=application&sTitle=&iItemsPerPage=25&iPage=1&sOrderBy=appId&bAscending=true";
             let data = `iappVersion-ratingOp=5&iappCategoryOp=11&iappVersion-licenseOp=5&sappVersion-ratingData=&iversions-idOp=5&sversions-idData=&sappCategoryData=&sappVersion-licenseData=&iappFamily-keywordsOp=2&sappFamily-keywordsData=&iappFamily-appNameOp=2&sappFamily-appNameData=&ionlyDownloadableOp=10&iappFamily-appNameOp0=2&sappFamily-appNameData0=${args.join('%20')}&sFilterSubmit=`;

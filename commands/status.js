@@ -1,8 +1,5 @@
 "use strict";
-
-const moment = require('moment');
 var startup = Date.now();
-var config = require('../config.json')
 
 module.exports.make = (bot) => {
     bot.registerCommand("status", (message, args) => {
@@ -22,7 +19,7 @@ module.exports.make = (bot) => {
                 url: `${bot.user.avatarURL}`
             },
             fields: [{
-                name: "Owner",
+                name: "Creator",
                 value: `Era#4669`,
                 inline: false
             }, {

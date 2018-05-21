@@ -3,6 +3,7 @@
 const Eris = require('eris');
 var config = require('./config.json');
 var cmds = require('./commands');
+const mysql = require('mysql2/promise')
 
 var bot = new Eris.CommandClient(config.token, {}, {
     description: "A shitty bot made with Eris in Node.js",
@@ -13,13 +14,19 @@ var bot = new Eris.CommandClient(config.token, {}, {
 bot.on('ready', () => {
     console.log("Im alive!");
 });
-for (let o in cmds) {
-    cmds[o].make(bot)
+
+async function initialize(cmds) {
+    let con = await mysql.createConnection({
+        host: "localhost",
+        user: config.sql_user,
+        password: config.sql_pass,
+    });
+
+    for (let o in cmds) {
+        cmds[o].make(bot, con)
+    }
 }
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 async function start(bot){
     try {
         bot.connect();
@@ -29,4 +36,5 @@ async function start(bot){
         }
     }
 }
+initialize(cmds)
 start(bot);

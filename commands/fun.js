@@ -1,12 +1,22 @@
 "use strict";
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = (bot) => {
+module.exports.make = async (bot, conn) => {
     var fun = bot.registerCommand("fun", "The following commands are available:- shitwaifu\nPut them after the fun command as subcommands to use.\nIf you have any fun stuff you would like to see in this command, talk to the owner.", {
         description: "A command that holds other basic fun subcommands",
         fullDescription: "A command that holds other basic fun subcommands, such as textfaces and a saber meme. Tell Era#4669 if you have more stuff you'd like added."
     })
     fun.registerSubcommand("shitwaifu", "http://i2.kym-cdn.com/photos/images/original/000/756/008/29d.jpg");
-    bot.registerCommand("abuse", (message, args) => {
+    bot.registerCommand("abuse", async (message, args) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         if (args == 0) {
             var username = message.author.username
         }
@@ -41,7 +51,14 @@ module.exports.make = (bot) => {
         description: "Abuses the user",
         fullDescription: "Abuses the mentioned user. Accepts Usernames, User Mentions, and Message Author as proper arguments."
     })
-    bot.registerCommand("say", (message, args) => {
+    bot.registerCommand("say", async (message, args) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         bot.createMessage(message.channel.id, {
             content: `${args.join(' ')}`
         })

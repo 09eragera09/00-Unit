@@ -3,8 +3,11 @@ const popura = require('popura');
 const config = require('../config.json');
 const Entities = require('html-entities').AllHtmlEntities;
 const entities = new Entities();
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = (bot) => {
+module.exports.make = async (bot, conn) => {
     const client = popura(config.username, config.malpassword);
 
     function popuraSearchResolve(animeArray, embedAll, message, invokedWith){
@@ -35,7 +38,14 @@ module.exports.make = (bot) => {
             })
         }
     }
-    bot.registerCommand("anime", (message, argv) => {
+    bot.registerCommand("anime", async (message, argv) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         let embedAll = {
             color: 0x91244e,
             type: 'rich',
@@ -49,7 +59,14 @@ module.exports.make = (bot) => {
         client.searchAnimes(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message)).catch(err => console.log(err))
     }, {description: "Searches MAL for anime",
         fullDescription: "Searches MAL for anime. Accepts anime names as arguments, returns a list of valid names"})
-    bot.registerCommand("manga", (message, argv) => {
+    bot.registerCommand("manga", async (message, argv) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         let embedAll = {
             color: 0x91244e,
             type: 'rich',

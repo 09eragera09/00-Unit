@@ -1,10 +1,19 @@
 "use strict";
-
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 const hltb = require("howlongtobeat");
 const hltbService = new hltb.HowLongToBeatService()
 
-module.exports.make = async (bot) => {
+module.exports.make = async (bot, conn) => {
     await bot.registerCommand('hltb',async (message, argv) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         let embedAll = {
             color: 0x91244e,
             type: 'rich',

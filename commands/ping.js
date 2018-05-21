@@ -1,7 +1,17 @@
 "use strict";
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = (bot) => {
-    bot.registerCommand("ping", (message, args) => {
+module.exports.make = (bot, conn) => {
+    bot.registerCommand("ping", async (message) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         var before = new Date();
         var mEmbd = {
             color: 0x91244e,

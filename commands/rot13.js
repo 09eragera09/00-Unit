@@ -1,8 +1,19 @@
 "use strict";
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = (bot) => {
-    bot.registerCommand("spoiler", (message, args) => {
-        bot.deleteMessage(message.channel.id, message.id, undefined)
+module.exports.make = async (bot, conn) => {
+
+    bot.registerCommand("spoiler", async (message, args) => {
+        bot.deleteMessage(message.channel.id, message.id, undefined);
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         if (args.length < 2) {
             return
         }
@@ -19,7 +30,7 @@ module.exports.make = (bot) => {
                 text: "To read the spoiler, click on the reaction.",
                 icon_url: bot.user.avatarURL
             }
-        }
+        };
         bot.createMessage(message.channel.id, {
             content: '',
             embed: embed
@@ -27,7 +38,7 @@ module.exports.make = (bot) => {
     }, {
         description: "Parses spoilers",
         fullDescription: "Takes 2 Arguments: Game Name in a single word, and the spoiler itself\n Eg. !spoiler GTAV Trevor is the nicest of the bunch\nParses spoilers through Rot13 for easy posting and viewing without ruining others' experience."
-    })
+    });
     bot.on("messageReactionAdd", (message, emoji, userID) => {
         bot.getMessage(message.channel.id, message.id).then(msg => {
             if (msg.embeds[0].author.name.split(' ')[0] != "Spoiler") {

@@ -1,8 +1,18 @@
 "use strict";
 const d20 = require('d20');
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = (bot) => {
-    bot.registerCommand("roll", (message, args) => {
+module.exports.make = async (bot, conn) => {
+    bot.registerCommand("roll", async (message, args) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         if (args.length <= 0) { return }
         let array1 = args.toString().split("#");
         let roll = d20.roll(array1[0], true);

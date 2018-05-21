@@ -2,9 +2,20 @@
 const cheerio = require("cheerio");
 const axios = require("axios")
 const XregExp = require('xregexp')
-module.exports.make = async (bot) => {
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
+
+module.exports.make = async (bot, conn) => {
     //await bot.registerCommand("steam", "This contains nothing yet.")
     await bot.registerCommand("steam", async (message, args) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         try {
             let url = "https://store.steampowered.com/search/?term=";
             let resp = await axios.get(`${url+args.join("+")}`);

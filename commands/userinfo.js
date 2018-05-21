@@ -1,9 +1,18 @@
 "use strict";
-
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 const moment = require('moment')
 
-module.exports.make = (bot) => {
-    bot.registerCommand("userinfo", (message, args)=> {
+module.exports.make = async (bot, conn) => {
+    bot.registerCommand("userinfo", async (message, args)=> {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         if (message.channel.type == 1) {return}
         if (args == 0) {
             var username = message.author.username

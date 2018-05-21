@@ -1,9 +1,21 @@
 "use strict";
 const cheerio = require('cheerio');
-const axios = require('axios')
+const axios = require('axios');
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = async (bot) => {
+
+module.exports.make = async (bot, conn) => {
+
     await bot.registerCommand("booru", async (message, args) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         try {
             const allListings = await axios.get(`https://gelbooru.com/index.php?page=post&s=list&tags=${args.join('+')}`);
             let pageLink = ((allListings) => {

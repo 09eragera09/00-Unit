@@ -2,11 +2,22 @@
 const VNDB = require("vndb");
 const Entities = require('html-entities').AllHtmlEntities;
 const entities = new Entities();
+const toggle = require('../commands/toggle');
+const path = require('path');
+let moduleName = path.basename(__filename);
 
-module.exports.make = async (bot) => {
+
+module.exports.make = async (bot, conn) => {
     const vndb = await VNDB.start();
     const res0 = await vndb.write('login {"protocol":1,"client":"SumikaSearch","clientver":"0.0.1"}')
     await bot.registerCommand("vndb", async (message, argv) => {
+        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            });
+            return
+        }
         let embedAll = {
             color: 0x91244e,
             type: 'rich',
