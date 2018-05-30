@@ -5,7 +5,11 @@ let moduleName = path.basename(__filename);
 
 module.exports.make = (bot, conn) => {
     bot.registerCommand("ping", async (message) => {
-        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
@@ -20,7 +24,7 @@ module.exports.make = (bot, conn) => {
                 icon_url: `${message.author.avatarURL}`
             },
             description: `Pong!`
-        }
+        };
         bot.createMessage(message.channel.id, {
             content: ``,
             embed: mEmbd
@@ -40,5 +44,5 @@ module.exports.make = (bot, conn) => {
     }, {
         description: "A ping command",
         fullDescription: "A ping command, to keep you entertained."
-    })  
-}
+    })
+};

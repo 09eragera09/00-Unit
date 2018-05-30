@@ -9,7 +9,11 @@ let moduleName = path.basename(__filename);
 module.exports.make = async (bot, conn) => {
 
     await bot.registerCommand("booru", async (message, args) => {
-        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
@@ -28,17 +32,17 @@ module.exports.make = async (bot, conn) => {
                     randomLink = `?page=post&s=list&tags=${args.join('+')}`
                 }
                 return randomLink;
-            })(allListings)
+            })(allListings);
             const pageListings = await axios.get(`https://gelbooru.com/index.php${pageLink}`);
-            let postID = ((pageListings)=>{
+            let postID = ((pageListings) => {
                 const html = pageListings.data;
                 let $ = cheerio.load(html);
                 let postCount = $('.contain-push .thumbnail-preview').length;
-                let randomIndex  = Math.floor(Math.random() * postCount);
+                let randomIndex = Math.floor(Math.random() * postCount);
                 let randomPost = $(`.contain-push .thumbnail-preview:nth-of-type(${randomIndex > 0 ? randomIndex : 1})`);
                 let randomPostID = randomPost.find('a').attr('href').split('&id=').pop();
                 return randomPostID
-            })(pageListings)
+            })(pageListings);
             const image = await axios.get('http://gelbooru.com/index.php', {
                 params: {
                     page: 'dapi',
@@ -46,10 +50,11 @@ module.exports.make = async (bot, conn) => {
                     s: 'post',
                     id: `${postID}`,
                     json: '1'
-                }});
+                }
+            });
             ((image) => {
                 bot.createMessage(message.channel.id, {
-                    content:'',
+                    content: '',
                     embed: {
                         color: 0x91244e,
                         fields: [{
@@ -64,8 +69,9 @@ module.exports.make = async (bot, conn) => {
                         }],
                         image: {
                             url: `${image.data[0].file_url}`
-                        }}
-                    })
+                        }
+                    }
+                })
             })(image)
         } catch (err) {
             console.error(err.stack);
@@ -75,4 +81,4 @@ module.exports.make = async (bot, conn) => {
         description: "Generic gelbooru search",
         fullDescription: "Searches gelbooru for particular tags and returns items picked randomly from returned search list. Accepts all meta tags."
     })
-}
+};

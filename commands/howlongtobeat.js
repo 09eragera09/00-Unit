@@ -3,11 +3,15 @@ const toggle = require('../commands/toggle');
 const path = require('path');
 let moduleName = path.basename(__filename);
 const hltb = require("howlongtobeat");
-const hltbService = new hltb.HowLongToBeatService()
+const hltbService = new hltb.HowLongToBeatService();
 
 module.exports.make = async (bot, conn) => {
-    await bot.registerCommand('hltb',async (message, argv) => {
-        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+    await bot.registerCommand('hltb', async (message, argv) => {
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
@@ -23,31 +27,36 @@ module.exports.make = async (bot, conn) => {
             },
             description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
             fields: []
+        };
+        let res1 = await hltbService.search(argv.join(' '));
+        if (res1.length == 0) {
+            bot.createMessage(message.channel.id, {content: "Search returned no results."})
         }
-        let res1 = await hltbService.search(argv.join(' '))
-        if (res1.length == 0) { bot.createMessage(message.channel.id, {content: "Search returned no results."})}
         else if (res1.length == 1) {
             var embed = hltbEmbed(res1[0]);
-            bot.createMessage(message.channel.id, {content:'', embed: embed})
+            bot.createMessage(message.channel.id, {content: '', embed: embed})
         }
         else if (res1.length > 1) {
             for (var i = 0; i < res1.length; i++) {
-                embedAll.description = embedAll.description + `\n${i+1}: ${res1[i].name}`
+                embedAll.description = embedAll.description + `\n${i + 1}: ${res1[i].name}`
             }
             bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
-                setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
-                    messageArray.forEach((mesg) => {
-                        if (mesg.author == message.author && parseInt(mesg.content) <= res1.length) {
-                            var embedS = hltbEmbed(res1[parseInt(mesg.content) - 1])
-                            bot.createMessage(message.channel.id, {content: '', embed: embedS})
-                        }
-                    })
-                }).catch(err => console.log(err))}, 7000)
+                setTimeout(() => {
+                    bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
+                        messageArray.forEach((mesg) => {
+                            if (mesg.author == message.author && parseInt(mesg.content) <= res1.length) {
+                                var embedS = hltbEmbed(res1[parseInt(mesg.content) - 1]);
+                                bot.createMessage(message.channel.id, {content: '', embed: embedS})
+                            }
+                        })
+                    }).catch(err => console.log(err))
+                }, 7000)
             })
         }
-    },  {
+    }, {
         description: "Generic HowLongToBeat search",
-    })
+    });
+
     function hltbEmbed(hltbRes) {
         let embed = {
             color: 0x91244e,
@@ -68,7 +77,7 @@ module.exports.make = async (bot, conn) => {
                 text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
                 icon_url: bot.user.avatarURL
             }
-        }
-        return(embed)
+        };
+        return (embed)
     }
-}
+};

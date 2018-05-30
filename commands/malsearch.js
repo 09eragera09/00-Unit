@@ -10,36 +10,49 @@ let moduleName = path.basename(__filename);
 module.exports.make = async (bot, conn) => {
     const client = popura(config.username, config.malpassword);
 
-    function popuraSearchResolve(animeArray, embedAll, message, invokedWith){
-        if (animeArray[0] === null) { bot.createMessage(message.channel.id, { content: "Search returned no results. Please try again with a different query"})}
-        else if (animeArray.length == 1) {
-            if (invokedWith == "manga") {var embed = mangaEmbed(animeArray[0])}
-            else {var embed = animeEmbed(animeArray[0])}
-            bot.createMessage(message.channel.id, {content:'', embed: embed })
+    function popuraSearchResolve(animeArray, embedAll, message, invokedWith) {
+        if (animeArray[0] === null) {
+            bot.createMessage(message.channel.id, {content: "Search returned no results. Please try again with a different query"})
+        }
+        else if (animeArray.length === 1) {
+            if (invokedWith === "manga") {
+                var embed = mangaEmbed(animeArray[0])
+            }
+            else {
+                var embed = animeEmbed(animeArray[0])
+            }
+            bot.createMessage(message.channel.id, {content: '', embed: embed})
         }
         else if (animeArray.length > 1) {
             for (var i = 0; i < animeArray.length; i++) {
-                /*let element = {};
-                element.name = '​​';
-                element.value = String(i+1) + ': ' + animeArray[i].title;
-                embedAll.fields.push(element);*/
-                embedAll.description = embedAll.description + `\n${i+1}: ${animeArray[i].title}`
+                embedAll.description = embedAll.description + `\n${i + 1}: ${animeArray[i].title}`
             }
             bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
-                setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
-                    messageArray.forEach((mesg) => {
-                        if (mesg.author == message.author && parseInt(mesg.content) <= animeArray.length) {
-                            if (invokedWith == "manga") {var embedS = mangaEmbed(animeArray[parseInt(mesg.content) - 1])}
-                            else {var embedS = animeEmbed(animeArray[parseInt(mesg.content) - 1])}
-                            bot.createMessage(message.channel.id, {content: '', embed: embedS})
-                        }
-                    })
-                }).catch(err => console.log(err))}, 7000)
+                setTimeout(() => {
+                    bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
+                        messageArray.forEach((mesg) => {
+                            if (mesg.author === message.author && parseInt(mesg.content) <= animeArray.length) {
+                                if (invokedWith === "manga") {
+                                    var embedS = mangaEmbed(animeArray[parseInt(mesg.content) - 1])
+                                }
+                                else {
+                                    var embedS = animeEmbed(animeArray[parseInt(mesg.content) - 1])
+                                }
+                                bot.createMessage(message.channel.id, {content: '', embed: embedS})
+                            }
+                        })
+                    }).catch(err => console.log(err))
+                }, 7000)
             })
         }
     }
+
     bot.registerCommand("anime", async (message, argv) => {
-        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
@@ -55,12 +68,20 @@ module.exports.make = async (bot, conn) => {
             },
             description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
             fields: []
-        }
-        client.searchAnimes(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message)).catch(err => console.log(err))
-    }, {description: "Searches MAL for anime",
-        fullDescription: "Searches MAL for anime. Accepts anime names as arguments, returns a list of valid names"})
+        };
+        client.searchAnimes(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message)).catch(err => {
+            bot.createMessage(message.channel.id, {content: `${err.statusMessage}`});
+        })
+    }, {
+        description: "Searches MAL for anime",
+        fullDescription: "Searches MAL for anime. Accepts anime names as arguments, returns a list of valid names"
+    });
     bot.registerCommand("manga", async (message, argv) => {
-        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
@@ -76,11 +97,15 @@ module.exports.make = async (bot, conn) => {
             },
             description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
             fields: []
-        }
+        };
         let invokedWith = "manga";
-        client.searchMangas(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message, invokedWith)).catch(err => console.log(err))
-    }, {description: "Searches MAL for manga",
-        fullDescription: "Searches MAL for manga. Accepts manga names as arguments, returns a list of valid names"})
+        client.searchMangas(argv.join('_')).then(animeArray => popuraSearchResolve(animeArray, embedAll, message, invokedWith)).catch(err => {
+            bot.createMessage(message.channel.id, {content: `${err.statusMessage}`});
+        })
+    }, {
+        description: "Searches MAL for manga",
+        fullDescription: "Searches MAL for manga. Accepts manga names as arguments, returns a list of valid names"
+    });
     var animeEmbed = (anime) => {
         if (anime.synopsis.length >= 1024) {
             anime.synopsis = anime.synopsis.slice(0, 1019);
@@ -111,9 +136,9 @@ module.exports.make = async (bot, conn) => {
                 text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
                 icon_url: bot.user.avatarURL
             }
-        }
-        return(embed)
-    }
+        };
+        return (embed)
+    };
     var mangaEmbed = (manga) => {
         if (manga.synopsis.length >= 1024) {
             manga.synopsis = manga.synopsis.slice(0, 1019);
@@ -144,7 +169,7 @@ module.exports.make = async (bot, conn) => {
                 text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
                 icon_url: bot.user.avatarURL
             }
-        }
-        return(embed)
+        };
+        return (embed)
     }
-}
+};

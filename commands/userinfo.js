@@ -2,18 +2,21 @@
 const toggle = require('../commands/toggle');
 const path = require('path');
 let moduleName = path.basename(__filename);
-const moment = require('moment')
+const moment = require('moment');
 
 module.exports.make = async (bot, conn) => {
-    bot.registerCommand("userinfo", async (message, args)=> {
-        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+    bot.registerCommand("userinfo", async (message, args) => {
+        if (message.channel.type == 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
             });
             return
         }
-        if (message.channel.type == 1) {return}
         if (args == 0) {
             var username = message.author.username
         }
@@ -26,14 +29,14 @@ module.exports.make = async (bot, conn) => {
         //This is going to be slow as shit....
         var member = message.channel.guild.members.find(m => {
             if (m.username == username || m.nick == username) return true;
-        })
+        });
         if (member === undefined) {
             bot.createMessage(message.channel.id, {
                 content: "User not found. Please check if there are typos. Search terms are case sensitive."
             });
             return
         }
-        var id = message.channel.guild.members.get(member.id)
+        var id = message.channel.guild.members.get(member.id);
         var embed = {
             color: 0x91244e,
             type: 'rich',
@@ -41,7 +44,7 @@ module.exports.make = async (bot, conn) => {
                 name: `Info of ${member.username}#${member.discriminator}`,
                 icon_url: `${member.avatarURL}`
             },
-            description: `Playing: ${member.game === null ? `n/a` : ''}${member.game !== null ? '**' + member.game.name+'**' : ''}`,
+            description: `Playing: ${member.game === null ? `n/a` : ''}${member.game !== null ? '**' + member.game.name + '**' : ''}`,
             thumbnail: {
                 url: `${member.avatarURL}`
             },
@@ -51,7 +54,7 @@ module.exports.make = async (bot, conn) => {
                 inline: true
             }, {
                 name: 'Bot user',
-                value: `${member.bot}`, 
+                value: `${member.bot}`,
                 inline: true
             }, {
                 name: 'User ID',
@@ -59,7 +62,7 @@ module.exports.make = async (bot, conn) => {
                 inline: true,
             }, {
                 name: 'Nickname',
-                value: `${member.nick === null ? `n/a`: ''}${member.nick !== null ? member.nick: ''}`,
+                value: `${member.nick === null ? `n/a` : ''}${member.nick !== null ? member.nick : ''}`,
                 inline: true
             }, {
                 name: `Created at`,
@@ -75,14 +78,16 @@ module.exports.make = async (bot, conn) => {
                 inline: true
             }, {
                 name: `Roles`,
-                value: `${member.roles.map(r=>message.channel.guild.roles.get(r).name).join(", ")}`,
+                value: `${member.roles.map(r => message.channel.guild.roles.get(r).name).join(", ")}`,
                 inline: true
             }]
-        }
+        };
         bot.createMessage(message.channel.id, {
             content: '',
             embed: embed
-        })}, {description: 'Gets info on a user',
-    fullDescription: "Gets full info on a user, including game playing, creation and join date"
+        })
+    }, {
+        description: 'Gets info on a user',
+        fullDescription: "Gets full info on a user, including game playing, creation and join date"
     })
-}
+};

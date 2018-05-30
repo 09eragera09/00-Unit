@@ -3,14 +3,16 @@ var startup = Date.now();
 
 module.exports.make = (bot) => {
     bot.registerCommand("status", (message, args) => {
-        if (message.channel.type == 1) {return}
-        var totalseconds = (Date.now() - startup)/1000;
-        var totalminutes = parseInt(totalseconds/60);
-        var seconds = parseInt(totalseconds%60);
-        var totalhours = parseInt(totalminutes/60);
-        var minutes = parseInt(totalminutes%60);
-        var days = parseInt(totalhours/24);
-        var hours = parseInt(totalhours%24)
+        if (message.channel.type == 1) {
+            return
+        }
+        var totalseconds = (Date.now() - startup) / 1000;
+        var totalminutes = parseInt(totalseconds / 60);
+        var seconds = parseInt(totalseconds % 60);
+        var totalhours = parseInt(totalminutes / 60);
+        var minutes = parseInt(totalminutes % 60);
+        var days = parseInt(totalhours / 24);
+        var hours = parseInt(totalhours % 24);
         var embed = {
             title: `${bot.user.username}#${bot.user.discriminator}`,
             description: `A shitty bot written in JS`,
@@ -27,7 +29,7 @@ module.exports.make = (bot) => {
                 value: `Have been awake for ${days}d${hours}h${minutes}m${seconds}s`,
                 inline: false
             }]
-        }
+        };
         bot.createMessage(message.channel.id, {
             content: '',
             embed: embed
@@ -36,4 +38,4 @@ module.exports.make = (bot) => {
         description: "Returns the bot status",
         fullDescription: "Returns the bot's status, including uptime and bot owner."
     })
-}
+};

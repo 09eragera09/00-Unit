@@ -1,4 +1,4 @@
-const random = require("lodash.random")
+const random = require("lodash.random");
 const toggle = require('../commands/toggle');
 const path = require('path');
 let moduleName = path.basename(__filename);
@@ -10,12 +10,18 @@ let basic_hash_function = (string) => {
         hash_value += (i + 1) * string.charCodeAt(i);
     }
     return hash_value;
-}
+};
 
 
 module.exports.make = async (bot, conn) => {
     bot.registerCommand("8ball", async (message, args) => {
-        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn).catch(err => {
+            console.log(err.stack)
+        });
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
@@ -45,7 +51,7 @@ module.exports.make = async (bot, conn) => {
         description: "Magic 8ball will help you solve all your troubles",
         fullDescription: "Returns 1 of 8 yes/no/maybe messages."
     })
-}
+};
 
 module.exports.sad = async function checkEnabled(message, moduleName) {
     let [serverRes, Serverfields] = await con.execute(`SELECT * FROM servers where code = ${message.channel.guild.id};`);

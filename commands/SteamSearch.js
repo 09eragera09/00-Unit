@@ -1,7 +1,7 @@
 "use strict";
 const cheerio = require("cheerio");
-const axios = require("axios")
-const XregExp = require('xregexp')
+const axios = require("axios");
+const XregExp = require('xregexp');
 const toggle = require('../commands/toggle');
 const path = require('path');
 let moduleName = path.basename(__filename);
@@ -9,7 +9,11 @@ let moduleName = path.basename(__filename);
 module.exports.make = async (bot, conn) => {
     //await bot.registerCommand("steam", "This contains nothing yet.")
     await bot.registerCommand("steam", async (message, args) => {
-        let [enabled, res]= await toggle.checkEnabled(message.channel.guild.id, moduleName, conn)
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
@@ -18,8 +22,8 @@ module.exports.make = async (bot, conn) => {
         }
         try {
             let url = "https://store.steampowered.com/search/?term=";
-            let resp = await axios.get(`${url+args.join("+")}`);
-            let $ = cheerio.load(resp.data)
+            let resp = await axios.get(`${url + args.join("+")}`);
+            let $ = cheerio.load(resp.data);
             let itemsAll = [];
             $('div#search_result_container div a.search_result_row').each((index, item) => {
                 itemsAll.push({
@@ -35,7 +39,7 @@ module.exports.make = async (bot, conn) => {
                 if ((title).indexOf(search) != -1) {
                     items.push(i)
                 }
-            })
+            });
             let embedAll = {
                 color: 0x91244e,
                 type: 'rich',
@@ -45,8 +49,10 @@ module.exports.make = async (bot, conn) => {
                 },
                 description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
                 fields: []
+            };
+            if (items.length == 0) {
+                bot.createMessage(message.channel.id, {content: "Search returned no results."})
             }
-            if (items.length == 0) { bot.createMessage(message.channel.id, {content: "Search returned no results."})}
             else if (items.length == 1) {
                 let SteamInfo = await SteamResolve(items[0]);
                 let SteamEmbed2 = SteamEmbed(SteamInfo);
@@ -57,22 +63,27 @@ module.exports.make = async (bot, conn) => {
             }
             else if (items.length > 1) {
                 for (var i = 0; i < items.length; i++) {
-                    embedAll.description = embedAll.description + `\n${i+1}: ${items[i].title}`
+                    embedAll.description = embedAll.description + `\n${i + 1}: ${items[i].title}`
                 }
                 bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
-                    setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
-                        messageArray.forEach(async (mesg) => {
-                            if (mesg.author == message.author && parseInt(mesg.content) <= items.length) {
-                                let appResolve = await SteamResolve(items[parseInt(mesg.content) - 1])
-                                let embedS = SteamEmbed(appResolve)
-                                bot.createMessage(message.channel.id, {content: '', embed: embedS})
-                            }
-                        })
-                    }).catch(err => console.log(err))}, 7000)
+                    setTimeout(() => {
+                        bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
+                            messageArray.forEach(async (mesg) => {
+                                if (mesg.author == message.author && parseInt(mesg.content) <= items.length) {
+                                    let appResolve = await SteamResolve(items[parseInt(mesg.content) - 1]);
+                                    let embedS = SteamEmbed(appResolve);
+                                    bot.createMessage(message.channel.id, {content: '', embed: embedS})
+                                }
+                            })
+                        }).catch(err => console.log(err))
+                    }, 7000)
                 })
             }
 
-        } catch (err) {console.error(err.stack)}
+        } catch (err) {
+            console.error(err.stack)
+        }
+
         async function SteamResolve(SteamItem) {
             let page = await axios.get(SteamItem.link);
             let $ = cheerio.load(page.data);
@@ -85,10 +96,11 @@ module.exports.make = async (bot, conn) => {
                 dev: `${$('div#developers_list a').text()}`,
                 pageURL: `${SteamItem.link}`,
                 icon: `${$('img.game_header_image_full').attr("src")}`
-            }
+            };
             return SteamInfo
         }
-        function SteamEmbed(SteamInfo){
+
+        function SteamEmbed(SteamInfo) {
 
             let embed = {
                 color: 0x91244e,
@@ -113,11 +125,11 @@ module.exports.make = async (bot, conn) => {
                     text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
                     icon_url: bot.user.avatarURL
                 }
-            }
-            return(embed)
+            };
+            return (embed)
 
         }
     }, {
         description: "Generic Steam Search"
     })
-}
+};
