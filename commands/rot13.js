@@ -49,10 +49,18 @@ module.exports.make = async (bot, conn) => {
     });
     bot.on("messageReactionAdd", (message, emoji, userID) => {
         bot.getMessage(message.channel.id, message.id).then(msg => {
-            if (msg.embeds[0].author.name.split(' ')[0] != "Spoiler") {
+            try {
+                if (msg.embeds.length !== 0) {
+                    if (msg.embeds[0].author.name.split(' ')[0] !== "Spoiler") {
+                        return
+                    }
+                }
+            } catch (err) {
+                console.log(err);
                 return
             }
-            if (userID != bot.user.id && msg.author.id == bot.user.id && msg.embeds.length != 0) {
+            try {
+                if (userID !== bot.user.id && msg.author.id === bot.user.id && msg.embeds.length !== 0) {
                 bot.getDMChannel(userID).then(res => {
                     let embed = {
                         color: 0x91244e,
@@ -73,6 +81,9 @@ module.exports.make = async (bot, conn) => {
                         embed: embed,
                     })
                 });
+            }
+            } catch (err) {
+                console.log(err);
             }
         });
 
