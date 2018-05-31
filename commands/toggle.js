@@ -49,6 +49,17 @@ module.exports.make = async (bot, con) => {
             })
         })
     });
+    bot.on('guildCreate', (guild) => {
+        let servers = [{id: `${guild.id}`, name: `${guild.name}`}];
+        con.query(`SELECT * FROM servers;`, (err, res, fields) => {
+            res.forEach(i => {
+                servers.splice(servers.indexOf({id: `${i.code}`, name: `${i.name}`}), 1);
+            });
+            servers.forEach(i => {
+                con.query(`INSERT INTO servers(code, name) VALUES("${i.id}", "${i.name}");`)
+            })
+        })
+    });
     bot.registerCommand("modules", (message, args) => {
         if (message.channel.type === 1) {
             bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
