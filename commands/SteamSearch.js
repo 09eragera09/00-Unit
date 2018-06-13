@@ -85,7 +85,13 @@ module.exports.make = async (bot, conn) => {
         }
 
         async function SteamResolve(SteamItem) {
-            let page = await axios.get(SteamItem.link);
+            let page = await axios.request({
+                url: `${SteamItem.link}`,
+                method: "get",
+                headers: {
+                    Cookie: "birthtime=28801; path=/; domain=store.steampowered.com"
+                }
+            });
             let $ = cheerio.load(page.data);
             let SteamInfo = {
                 name: `${SteamItem.title}`,

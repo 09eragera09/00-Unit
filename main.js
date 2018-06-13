@@ -21,6 +21,9 @@ async function initialize(cmds) {
         user: config.sql_user,
         password: config.sql_pass,
     });
+    setInterval(function () {
+        con.query('SELECT 1');
+    }, 5000);
 
     for (let o in cmds) {
         cmds[o].make(bot, con)

@@ -58,16 +58,17 @@ module.exports.make = async (bot, conn) => {
     });
 
     function hltbEmbed(hltbRes) {
+        console.log(hltbRes);
         let embed = {
             color: 0x91244e,
             type: 'rich',
             author: {
                 name: `${hltbRes.name}`,
-                icon_url: `${hltbRes.imageUrl}`
+                icon_url: `${hltbRes.imageUrl.replace(' ', '%20')}`
             },
             description: `https://howlongtobeat.com/game.php?id=${hltbRes.id}`,
             thumbnail: {
-                url: `${hltbRes.imageUrl}`
+                url: `${hltbRes.imageUrl.replace(' ', '%20')}`
             },
             fields: [
                 {name: 'Main Story', value: `${hltbRes.gameplayMain} hours`},
