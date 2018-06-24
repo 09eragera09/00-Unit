@@ -89,7 +89,7 @@ module.exports.make = async (bot, conn) => {
                 url: `${SteamItem.link}`,
                 method: "get",
                 headers: {
-                    Cookie: "birthtime=28801; path=/; domain=store.steampowered.com"
+                    Cookie: "birthtime=28801; path=/; domain=store.steampowered.com; mature_content=1"
                 }
             });
             let $ = cheerio.load(page.data);
