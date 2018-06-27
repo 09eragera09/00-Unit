@@ -4,19 +4,23 @@ const axios = require("axios");
 const XregExp = require('xregexp');
 const toggle = require('../commands/toggle');
 const path = require('path');
+const helperFunctions = require("../commands/helperFunctions/helperFunctions");
 let moduleName = path.basename(__filename);
 
 module.exports.make = async (bot, conn) => {
-    //await bot.registerCommand("steam", "This contains nothing yet.")
     await bot.registerCommand("steam", async (message, args) => {
         if (message.channel.type === 1) {
-            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"}).catch((err) => {
+                console.log(err.stack)
+            });
             return
         }
         let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
+            }).catch((err) => {
+                console.log(err.stack)
             });
             return
         }
@@ -27,7 +31,7 @@ module.exports.make = async (bot, conn) => {
             let itemsAll = [];
             $('div#search_result_container div a.search_result_row').each((index, item) => {
                 itemsAll.push({
-                    title: `${$(item).find('span.title').text()}`,
+                    name: `${$(item).find('span.title').text()}`,
                     link: `${$(item).attr('href').split('?')[0]}`
                 });
             });
@@ -35,105 +39,68 @@ module.exports.make = async (bot, conn) => {
             itemsAll.forEach(i => {
                 let cregx = new XregExp("([^\\p{L}\\p{N}\\s]+)", "g");
                 let search = XregExp.replace(args.join(' ').toUpperCase(), cregx, '');
-                let title = XregExp.replace(i.title.toUpperCase(), cregx, '');
-                if ((title).indexOf(search) != -1) {
+                let name = XregExp.replace(i.name.toUpperCase(), cregx, '');
+                if ((name).indexOf(search) !== -1) {
                     items.push(i)
                 }
             });
-            let embedAll = {
-                color: 0x91244e,
-                type: 'rich',
-                author: {
-                    name: `Steam search for term "${args.join(' ')}"`,
-                    icon_url: `${bot.user.avatarURL}`
+            helperFunctions.serviceSearch(bot, message, {
+                service: {
+                    name: "Steam"
                 },
-                description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
-                fields: []
-            };
-            if (items.length == 0) {
-                bot.createMessage(message.channel.id, {content: "Search returned no results."})
-            }
-            else if (items.length == 1) {
-                let SteamInfo = await SteamResolve(items[0]);
-                let SteamEmbed2 = SteamEmbed(SteamInfo);
-                bot.createMessage(message.channel.id, {
-                    content: '',
-                    embed: SteamEmbed2
-                })
-            }
-            else if (items.length > 1) {
-                for (var i = 0; i < items.length; i++) {
-                    embedAll.description = embedAll.description + `\n${i + 1}: ${items[i].title}`
-                }
-                bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
-                    setTimeout(() => {
-                        bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
-                            messageArray.forEach(async (mesg) => {
-                                if (mesg.author == message.author && parseInt(mesg.content) <= items.length) {
-                                    let appResolve = await SteamResolve(items[parseInt(mesg.content) - 1]);
-                                    let embedS = SteamEmbed(appResolve);
-                                    bot.createMessage(message.channel.id, {content: '', embed: embedS})
-                                }
-                            })
-                        }).catch(err => console.log(err))
-                    }, 7000)
-                })
-            }
-
+                query: `${args.join(" ")}`
+            }, items, async (item, bot) => {
+                let page = await axios.request({
+                    url: `${item.link}`,
+                    method: "get",
+                    headers: {
+                        Cookie: "birthtime=28801; path=/; domain=store.steampowered.com; mature_content=1"
+                    }
+                });
+                let $ = cheerio.load(page.data);
+                let SteamInfo = {
+                    name: `${item.name}`,
+                    description: `${$('div.game_description_snippet').text()}`,
+                    recent_reviews: `${$('div.user_reviews').children('.user_reviews_summary_row').first().find('.game_review_summary').text()}`,
+                    all_reviews: `${$('div.user_reviews').children('.user_reviews_summary_row').last().find('.game_review_summary').text()}`,
+                    release: `${$('div.release_date div.date').text()}`,
+                    dev: `${$('div#developers_list a').text()}`,
+                    pageURL: `${item.link}`,
+                    icon: `${$('img.game_header_image_full').attr("src")}`
+                };
+                let embed = {
+                    color: 0x91244e,
+                    type: 'rich',
+                    author: {
+                        name: `${SteamInfo.name}`,
+                        url: `${SteamInfo.pageURL}`,
+                        icon_url: `${SteamInfo.icon}`
+                    },
+                    description: `${SteamInfo.description}`,
+                    thumbnail: {
+                        url: `${SteamInfo.icon}`
+                    },
+                    fields: [
+                        {name: 'Release', value: `${SteamInfo.release ? SteamInfo.release : "n/a"}`},
+                        {name: 'Developer', value: `${SteamInfo.dev ? SteamInfo.dev : "n/a"}`},
+                        {
+                            name: 'Recent Reviews',
+                            value: `${SteamInfo.recent_reviews ? SteamInfo.recent_reviews : "n/a"}`
+                        },
+                        {name: `All Reviews`, value: `${SteamInfo.all_reviews ? SteamInfo.all_reviews : "n/a"}`},
+                        {name: `Link`, value: `${SteamInfo.pageURL}`}
+                    ],
+                    footer: {
+                        text: `Search provided by ${bot.user.username}, a shitty bot written in JS by EraTheMonologuer`,
+                        icon_url: bot.user.avatarURL
+                    }
+                };
+                return (embed)
+            }).catch((err) => {
+                console.log(err.stack)
+            })
         } catch (err) {
             console.error(err.stack)
-        }
-
-        async function SteamResolve(SteamItem) {
-            let page = await axios.request({
-                url: `${SteamItem.link}`,
-                method: "get",
-                headers: {
-                    Cookie: "birthtime=28801; path=/; domain=store.steampowered.com; mature_content=1"
-                }
-            });
-            let $ = cheerio.load(page.data);
-            let SteamInfo = {
-                name: `${SteamItem.title}`,
-                description: `${$('div.game_description_snippet').text()}`,
-                recent_reviews: `${$('div.user_reviews').children('.user_reviews_summary_row').first().find('.game_review_summary').text()}`,
-                all_reviews: `${$('div.user_reviews').children('.user_reviews_summary_row').last().find('.game_review_summary').text()}`,
-                release: `${$('div.release_date div.date').text()}`,
-                dev: `${$('div#developers_list a').text()}`,
-                pageURL: `${SteamItem.link}`,
-                icon: `${$('img.game_header_image_full').attr("src")}`
-            };
-            return SteamInfo
-        }
-
-        function SteamEmbed(SteamInfo) {
-
-            let embed = {
-                color: 0x91244e,
-                type: 'rich',
-                author: {
-                    name: `${SteamInfo.name}`,
-                    url: `${SteamInfo.pageURL}`,
-                    icon_url: `${SteamInfo.icon}`
-                },
-                description: `${SteamInfo.description}`,
-                thumbnail: {
-                    url: `${SteamInfo.icon}`
-                },
-                fields: [
-                    {name: 'Release', value: `${SteamInfo.release ? SteamInfo.release : "n/a"}`},
-                    {name: 'Developer', value: `${SteamInfo.dev ? SteamInfo.dev : "n/a"}`},
-                    {name: 'Recent Reviews', value: `${SteamInfo.recent_reviews ? SteamInfo.recent_reviews : "n/a"}`},
-                    {name: `All Reviews`, value: `${SteamInfo.all_reviews ? SteamInfo.all_reviews : "n/a"}`},
-                    {name: `Link`, value: `${SteamInfo.pageURL}`}
-                ],
-                footer: {
-                    text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
-                    icon_url: bot.user.avatarURL
-                }
-            };
-            return (embed)
-
         }
     }, {
         description: "Generic Steam Search"

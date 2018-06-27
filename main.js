@@ -1,13 +1,13 @@
 "use strict";
 
 const Eris = require('eris');
-var config = require('./config.json');
-var cmds = require('./commands');
+const config = require('./config.json');
+const cmds = require('./commands');
 const mysql = require('mysql2/promise');
 
 var bot = new Eris.CommandClient(config.token, {}, {
     description: "A shitty bot made with Eris in Node.js",
-    owner: "09eragera09",
+    owner: "EraTheMonologuer",
     prefix: config.prefix
 });
 
@@ -26,20 +26,15 @@ async function initialize(cmds) {
     }, 5000);
 
     for (let o in cmds) {
-        cmds[o].make(bot, con)
+        if (cmds[o].make) {
+            cmds[o].make(bot, con)
+        }
     }
 }
 
-async function start(bot){
-    try {
-        bot.connect();
-    } catch (e) {
-        console.log(e.stack)
-    }
-}
-
-initialize(cmds);
-//start(bot);
+initialize(cmds).catch((err) => {
+    console.log(err.stack)
+});
 bot.connect().catch(err => {
     console.log(err.stack)
 });
