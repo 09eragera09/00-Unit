@@ -8,7 +8,7 @@ module.exports.serviceSearch = async function (bot, message, details, searchItem
         })
     }
     if (searchItems.length === 1) {
-        let res = pickItem(searchItems[0], bot);
+        let res = await pickItem(searchItems[0], bot);
         bot.createMessage(message.channel.id, {
             content: '',
             embed: res
