@@ -12,7 +12,8 @@ module.exports.make = async (bot, con) => {
     con.query("CREATE TABLE IF NOT EXISTS servers(" +
         "id int(10) PRIMARY KEY AUTO_INCREMENT," +
         "code bigint NOT NULL," +
-        "name VARCHAR(1024) NOT NULL);");
+        "name VARCHAR(1024) NOT NULL," +
+        "CONSTRAINT UNIQUE(code, name));");
     con.query("CREATE TABLE IF NOT EXISTS whiteListedCommands(" +
         "id int(4) PRIMARY KEY AUTO_INCREMENT," +
         "commandID int(4) NOT NULL," +
