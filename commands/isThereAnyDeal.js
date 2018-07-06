@@ -28,7 +28,7 @@ module.exports.make = async (bot, conn) => {
         }
         try {
             let url = "https://store.steampowered.com/search/?term=";
-            let resp = await axios.get(`${url + args.join("+") + "&category1=998"}`);
+            let resp = await axios.get(`${url + args.join("+")}`);
             let $ = cheerio.load(resp.data);
             let itemsAll = [];
             $('div#search_result_container div a.search_result_row').each((index, item) => {
@@ -97,5 +97,7 @@ module.exports.make = async (bot, conn) => {
         } catch (err) {
             console.error(err.stack)
         }
-    })
+    });
+
+    bot.registerCommandAlias('deals', 'itad');
 };
