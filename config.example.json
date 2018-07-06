@@ -1,4 +1,12 @@
 {
     "token": "<discord_token_string>",
-    "prefix": "<command_prefix_string>"
+  "prefix": "<command_prefix_string>",
+  "ownerID": "<bot_owner_ID>",
+  "username": "<MYANIMELIST_username>",
+  "malpassword": "<MYANIMELIST_password>",
+  "sql_user": "<MySQL_username>",
+  "sql_pass": "<MySQL_password>",
+  "admin_role": "<discord_admin_role>",
+  "required_modules": "<space seperated module filenames that are required for base bot to function>",
+  "itadkey": "<IsThereAnyDeal APIKEY>"
 }
