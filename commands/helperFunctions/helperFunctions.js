@@ -43,6 +43,9 @@ module.exports.serviceSearch = async function (bot, message, details, searchItem
                     })*/
                     let messageFound = false;
                     for (let i = 0; i < messageArray.length; i++) {
+                        if (messageArray.length === 0) {
+                            break;
+                        }
                         if (messageArray[i].author === message.author && parseInt(messageArray[i].content) <= searchItems.length) {
                             messageFound = true;
                             let res = await pickItem(searchItems[parseInt(messageArray[i].content) - 1], bot);
@@ -50,13 +53,11 @@ module.exports.serviceSearch = async function (bot, message, details, searchItem
                                 console.log(err.stack)
                             });
                         }
-                        if (messageFound) {
-                            break;
-                        } else {
-                            bot.createMessage(message.channel.id, {content: "408 Request Timed Out. (Each Search has a timeout of 7 seconds.)"}).catch((err) => {
-                                console.log(err.stack)
-                            })
-                        }
+                    }
+                    if (!messageFound) {
+                        bot.createMessage(message.channel.id, {content: "408 Request Timed Out. (Each Search has a timeout of 7 seconds.)"}).catch((err) => {
+                            console.log(err.stack)
+                        })
                     }
                 }).catch(err => console.log(err))
             }, 7000)
