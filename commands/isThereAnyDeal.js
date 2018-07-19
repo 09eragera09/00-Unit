@@ -97,6 +97,7 @@ module.exports.make = async (bot, conn) => {
                         name: `${item.name}`,
                         url: `${cheapestUnit.url}`
                     },
+                    description: prices.urls.game,
                     fields: [
                         {name: 'Current Price', value: `$${cheapestUnit.price_new}`, inline: true},
                         {name: 'Original Price', value: `$${cheapestUnit.price_old}`, inline: true},
