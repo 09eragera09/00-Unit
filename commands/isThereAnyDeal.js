@@ -9,7 +9,6 @@ const apikey = require('../config').itadkey;
 const moment = require('moment');
 const igdb = require('igdb-api-node').default;
 const igdbClient = igdb("79fd60f10c724bfbc2547fd255c37bd2");
-const fs = require('fs');
 
 module.exports.make = async (bot, conn) => {
     await bot.registerCommand('itad', async (message, args) => {
@@ -34,7 +33,8 @@ module.exports.make = async (bot, conn) => {
                 fields: "*",
                 limit: "15",
                 filters: {
-                    'version_parent-not_exists': '1'
+                    'version_parent-not_exists': '1',
+                    'platforms-in': '6'
                 }
             });
             let cregx = new XregExp("([^\\p{L}\\p{N}\\s]+)", "g");
