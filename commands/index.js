@@ -1,2 +1,2 @@
 var requireDirectory = require('require-directory');
-module.exports = requireDirectory(module)
+module.exports = requireDirectory(module);

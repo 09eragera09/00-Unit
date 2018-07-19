@@ -23,6 +23,7 @@
     "eris": "^0.8.5",
     "howlongtobeat": "^1.0.11",
     "html-entities": "^1.2.1",
+    "igdb-api-node": "^3.1.7",
     "lodash.random": "^3.2.0",
     "moment": "^2.22.1",
     "mysql": "^2.15.0",

@@ -1,5 +1,4 @@
 "use strict";
-const cheerio = require("cheerio");
 const axios = require("axios");
 const XregExp = require('xregexp');
 const toggle = require('../commands/toggle');
@@ -8,6 +7,9 @@ const helperFunctions = require("../commands/helperFunctions/helperFunctions");
 const moduleName = path.basename(__filename);
 const apikey = require('../config').itadkey;
 const moment = require('moment');
+const igdb = require('igdb-api-node').default;
+const igdbClient = igdb("79fd60f10c724bfbc2547fd255c37bd2");
+const fs = require('fs');
 
 module.exports.make = async (bot, conn) => {
     await bot.registerCommand('itad', async (message, args) => {
@@ -27,58 +29,83 @@ module.exports.make = async (bot, conn) => {
             return
         }
         try {
-            let url = "https://store.steampowered.com/search/?term=";
-            let resp = await axios.get(`${url + args.join("+")}`);
-            let $ = cheerio.load(resp.data);
-            let itemsAll = [];
-            $('div#search_result_container div a.search_result_row').each((index, item) => {
-                itemsAll.push({
-                    name: `${$(item).find('span.title').text()}`,
-                    link: `${$(item).attr('href').split('?')[0]}`
-                });
-            });
-            let items = [];
-            itemsAll.forEach(i => {
-                let cregx = new XregExp("([^\\p{L}\\p{N}\\s]+)", "g");
-                let search = XregExp.replace(args.join(' ').toUpperCase(), cregx, '');
-                let name = XregExp.replace(i.name.toUpperCase(), cregx, '');
-                if ((name).indexOf(search) !== -1) {
-                    items.push(i)
+            let res = await igdbClient.games({
+                search: args.join("%20"),
+                fields: "*",
+                limit: "15",
+                filters: {
+                    'version_parent-not_exists': '1'
                 }
             });
+            let cregx = new XregExp("([^\\p{L}\\p{N}\\s]+)", "g");
+            let arr = [];
+            for (let i = 0; i < res.body.length; i++) {
+                let bool = true;
+                let name = XregExp.replace(res.body[i].slug.split('-').join('').toUpperCase(), cregx, '');
+                for (let j = 0; j < args.length; j++) {
+                    let search = XregExp.replace(args[j].toUpperCase(), cregx, '');
+                    if ((name).indexOf(search) === -1) {
+                        bool = false;
+                    }
+                }
+                if (bool) {
+                    arr.push(res.body[i]);
+                }
+            }
             helperFunctions.serviceSearch(bot, message, {
                 service: {
-                    name: "Steam Powered IsThereAnyDeal"
+                    name: "IGDB Powered IsThereAnyDeal"
                 },
                 query: `${args.join(" ")}`
-            }, items, async (item, bot) => {
-
+            }, arr, async (item, bot) => {
+                //let shops = ['origin', 'voidu', 'gog', 'steam', 'uplay', 'fanatical', 'gamesplanet', 'indiegala', 'greenmangaming'];
                 let plainItem = await axios({
-                    url: `https://api.isthereanydeal.com/v02/game/plain/?key=${apikey}&shop=steam&game_id=app%2F${item.link.split('/')[4]}`
+                    url: `https://api.isthereanydeal.com/v02/game/plain/?key=${apikey}&title=${item.name}`
                 });
                 let prices = await axios({
-                    url: `https://api.isthereanydeal.com/v01/game/prices/?key=${apikey}&plains=${plainItem.data.data.plain}&region=us&country=SK&shops=steam`
+                    url: `https://api.isthereanydeal.com/v01/game/prices/?key=${apikey}&plains=${plainItem.data.data.plain}&region=us&country=SK`
                 });
                 let historicalLow = await axios({
-                    url: `https://api.isthereanydeal.com/v01/game/lowest/?key=${apikey}&plains=${plainItem.data.data.plain}&region=us&country=SK&shops=steam`
+                    url: `https://api.isthereanydeal.com/v01/game/lowest/?key=${apikey}&plains=${plainItem.data.data.plain}&region=us&country=SK`
                 });
                 prices = prices.data.data;
                 historicalLow = historicalLow.data.data;
                 prices = prices[Object.keys(prices)[0]];
                 historicalLow = historicalLow[Object.keys(historicalLow)[0]];
+
+                let cheapestUnit = {
+                    price_new: prices.list[0].price_new,
+                    shop: {
+                        name: prices.list[0].shop.name
+                    },
+                    price_old: prices.list[0].price_old,
+                    price_cut: prices.list[0].price_cut,
+                    url: prices.list[0].url,
+                    drm: prices.list[0].drm
+                };
+                if (prices.list.length > 1) {
+                    for (let i = 0; i < prices.list.length; i++) {
+                        if (cheapestUnit.price_new > prices.list[i].price_new) {
+                            cheapestUnit = prices.list[i];
+                        }
+                    }
+                }
                 let embed = {
                     color: 0x91244e,
                     type: 'rich',
                     author: {
                         name: `${item.name}`,
-                        url: `${prices.list[0].url}`
+                        url: `${cheapestUnit.url}`
                     },
                     fields: [
-                        {name: 'Current Price', value: `$${prices.list[0].price_new}`, inline: true},
-                        {name: 'Original Price', value: `$${prices.list[0].price_old}`, inline: true},
-                        {name: 'Discount', value: `${prices.list[0].price_cut}%`, inline: true},
+                        {name: 'Current Price', value: `$${cheapestUnit.price_new}`, inline: true},
+                        {name: 'Original Price', value: `$${cheapestUnit.price_old}`, inline: true},
+                        {name: 'Discount', value: `${cheapestUnit.price_cut}%`, inline: true},
+                        {name: 'Store', value: cheapestUnit.shop.name, inline: true},
+                        {name: 'DRM', value: cheapestUnit.drm[0], inline: true},
                         {name: `Historical Low`, value: `$${historicalLow.price}`, inline: true},
                         {name: `Historical Low Discount`, value: `${historicalLow.cut}%`, inline: true},
+                        {name: 'Historical Low Store', value: historicalLow.shop.name, inline: true},
                         {
                             name: `Recorded on`,
                             value: moment.unix(historicalLow.added).format('Do MMMM YYYY'),
@@ -86,7 +113,7 @@ module.exports.make = async (bot, conn) => {
                         }
                     ],
                     footer: {
-                        text: `Powered by Steam | ${bot.user.username}, a shitty bot written in JS by EraTheMonologuer`,
+                        text: `Powered by IGDB and ITAD | ${bot.user.username}, a shitty bot written in JS by EraTheMonologuer`,
                         icon_url: bot.user.avatarURL
                     }
                 };
