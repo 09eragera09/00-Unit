@@ -73,52 +73,93 @@ module.exports.make = async (bot, conn) => {
                 prices = prices[Object.keys(prices)[0]];
                 historicalLow = historicalLow[Object.keys(historicalLow)[0]];
 
-                let cheapestUnit = {
-                    price_new: prices.list[0].price_new,
-                    shop: {
-                        name: prices.list[0].shop.name
-                    },
-                    price_old: prices.list[0].price_old,
-                    price_cut: prices.list[0].price_cut,
-                    url: prices.list[0].url,
-                    drm: prices.list[0].drm
-                };
-                if (prices.list.length > 1) {
-                    for (let i = 0; i < prices.list.length; i++) {
-                        if (cheapestUnit.price_new > prices.list[i].price_new) {
-                            cheapestUnit = prices.list[i];
+                if (prices.list.length > 0) {
+                    let cheapestUnit = {
+                        price_new: prices.list[0].price_new || 0,
+                        shop: {
+                            name: prices.list[0].shop.name || 'No store found.'
+                        },
+                        price_old: prices.list[0].price_old || 0,
+                        price_cut: prices.list[0].price_cut || 0,
+                        url: prices.list[0].url || 'No URL found',
+                        drm: prices.list[0].drm
+                    };
+                    if (prices.list.length > 1) {
+                        for (let i = 0; i < prices.list.length; i++) {
+                            if (!(typeof cheapestUnit.price_new === "number") || (cheapestUnit.price_new > prices.list[i].price_new)) {
+                                cheapestUnit = prices.list[i];
+                            }
                         }
                     }
+                    let embed = {
+                        color: 0x91244e,
+                        type: 'rich',
+                        author: {
+                            name: `${item.name}`,
+                            url: `${cheapestUnit.url}`
+                        },
+                        description: prices.urls.game,
+                        fields: [
+                            {
+                                name: 'Current Price',
+                                value: `$${cheapestUnit.price_new}` || 'No Price found.',
+                                inline: true
+                            },
+                            {
+                                name: 'Original Price',
+                                value: `$${cheapestUnit.price_old}` || 'No Price found.',
+                                inline: true
+                            },
+                            {
+                                name: 'Discount',
+                                value: `${cheapestUnit.price_cut}%` || 'No discount found.',
+                                inline: true
+                            },
+                            {name: 'Store', value: cheapestUnit.shop.name || 'No store found.', inline: true},
+                            {
+                                name: 'DRM',
+                                value: `${cheapestUnit.drm.length > 0 ? cheapestUnit.drm[0] : "No DRM Listed"}`,
+                                inline: true
+                            },
+                            {
+                                name: `Historical Low`,
+                                value: `$${historicalLow.price}` || 'No price found',
+                                inline: true
+                            },
+                            {
+                                name: `Historical Low Discount`,
+                                value: `${historicalLow.cut}%` || 'No discount found.',
+                                inline: true
+                            },
+                            {
+                                name: 'Historical Low Store',
+                                value: historicalLow.shop.name || 'No store found',
+                                inline: true
+                            },
+                            {
+                                name: `Recorded on`,
+                                value: `${historicalLow === 0 ? "Invalid Date" : moment.unix(historicalLow.added).format('Do MMMM YYYY')}`,
+                                inline: true
+                            }
+                        ],
+                        footer: {
+                            text: `Powered by IGDB and ITAD | ${bot.user.username}, a shitty bot written in JS by EraTheMonologuer`,
+                            icon_url: bot.user.avatarURL
+                        }
+                    };
+                    return (embed)
+                } else {
+                    let embed = {
+                        color: 0x91244e,
+                        type: 'rich',
+                        author: {
+                            name: 'ITAD Error!'
+                        },
+                        description: 'The IsThereAnyDeal API returned no results.'
+                    };
+                    return (embed)
                 }
-                let embed = {
-                    color: 0x91244e,
-                    type: 'rich',
-                    author: {
-                        name: `${item.name}`,
-                        url: `${cheapestUnit.url}`
-                    },
-                    description: prices.urls.game,
-                    fields: [
-                        {name: 'Current Price', value: `$${cheapestUnit.price_new}`, inline: true},
-                        {name: 'Original Price', value: `$${cheapestUnit.price_old}`, inline: true},
-                        {name: 'Discount', value: `${cheapestUnit.price_cut}%`, inline: true},
-                        {name: 'Store', value: cheapestUnit.shop.name, inline: true},
-                        {name: 'DRM', value: cheapestUnit.drm[0], inline: true},
-                        {name: `Historical Low`, value: `$${historicalLow.price}`, inline: true},
-                        {name: `Historical Low Discount`, value: `${historicalLow.cut}%`, inline: true},
-                        {name: 'Historical Low Store', value: historicalLow.shop.name, inline: true},
-                        {
-                            name: `Recorded on`,
-                            value: moment.unix(historicalLow.added).format('Do MMMM YYYY'),
-                            inline: true
-                        }
-                    ],
-                    footer: {
-                        text: `Powered by IGDB and ITAD | ${bot.user.username}, a shitty bot written in JS by EraTheMonologuer`,
-                        icon_url: bot.user.avatarURL
-                    }
-                };
-                return (embed)
+
             }).catch((err) => {
                 console.log(err.stack)
             })
