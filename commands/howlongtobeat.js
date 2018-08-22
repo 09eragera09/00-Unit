@@ -3,6 +3,8 @@ const toggle = require('../commands/toggle');
 const path = require('path');
 const hltb = require("howlongtobeat");
 const hltbService = new hltb.HowLongToBeatService();
+const axios = require('axios');
+const cheerio = require("cheerio");
 const helperFunctions = require("../commands/helperFunctions/helperFunctions");
 let moduleName = path.basename(__filename);
 
@@ -30,6 +32,16 @@ module.exports.make = async (bot, conn) => {
             },
             query: `${argv.join(" ")}`
         }, res1, async (item, bot) => {
+            let hltbURL = `https://howlongtobeat.com/game.php?id=${item.id}`;
+            let request = await axios.request({
+                url: hltbURL,
+                method: 'get'
+            });
+            let $ = cheerio.load(request.data);
+            let timeObject = {};
+            $('.game_times > li').each(function () {
+                timeObject[$(this).children('h5').text()] = $(this).children('div').text()
+            });
             let embed = {
                 color: 0x91244e,
                 type: 'rich',
@@ -37,19 +49,25 @@ module.exports.make = async (bot, conn) => {
                     name: `${item.name}`,
                     icon_url: `${item.imageUrl.replace(' ', '%20')}`
                 },
-                description: `https://howlongtobeat.com/game.php?id=${item.id}`,
+                description: hltbURL,
                 thumbnail: {
                     url: `${item.imageUrl.replace(' ', '%20')}`
                 },
-                fields: [
-                    {name: 'Main Story', value: `${item.gameplayMain} hours`},
-                    {name: 'Completionist', value: `${item.gameplayCompletionist} hours`}
-                ],
+                fields: [],
                 footer: {
                     text: `Search provided by ${bot.user.username}, a shitty bot written in JS by EraTheMonologuer`,
                     icon_url: bot.user.avatarURL
                 }
             };
+            Object.keys(timeObject).forEach(i => {
+                embed.fields.push({
+                    name: i,
+                    value: timeObject[i]
+                })
+            });
+            if (Object.keys(timeObject).length === 0) {
+                embed.description += "\nNothing Found"
+            }
             return (embed)
         }).catch((err) => {
             console.log(err.stack)

@@ -1,5 +1,5 @@
 {
-    "token": "<discord_token_string>",
+  "token": "<discord_token_string>",
   "prefix": "<command_prefix_string>",
   "ownerID": "<bot_owner_ID>",
   "username": "<MYANIMELIST_username>",
