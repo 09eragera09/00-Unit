@@ -40,7 +40,7 @@ module.exports.make = async (bot, con) => {
     config.required_modules.split(' ').forEach(i => {
         let moduleIndex = files.indexOf(i);
         if (moduleIndex !== -1) {
-            files.splice(moduleIndex)
+            files.splice(moduleIndex, 1)
         }
     });
     con.query(`SELECT *
