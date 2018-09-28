@@ -1,19 +1,19 @@
 "use strict";
-var startup = Date.now();
+const startup = Date.now();
 
 module.exports.make = (bot) => {
-    bot.registerCommand("status", (message, args) => {
-        if (message.channel.type == 1) {
+    bot.registerCommand("status", (message) => {
+        if (message.channel.type === 1) {
             return
         }
-        var totalseconds = (Date.now() - startup) / 1000;
-        var totalminutes = parseInt(totalseconds / 60);
-        var seconds = parseInt(totalseconds % 60);
-        var totalhours = parseInt(totalminutes / 60);
-        var minutes = parseInt(totalminutes % 60);
-        var days = parseInt(totalhours / 24);
-        var hours = parseInt(totalhours % 24);
-        var embed = {
+        const totalseconds = (Date.now() - startup) / 1000;
+        const totalminutes = parseInt(totalseconds / 60);
+        const seconds = parseInt(totalseconds % 60);
+        const totalhours = parseInt(totalminutes / 60);
+        const minutes = parseInt(totalminutes % 60);
+        const days = parseInt(totalhours / 24);
+        const hours = parseInt(totalhours % 24);
+        const embed = {
             title: `${bot.user.username}#${bot.user.discriminator}`,
             description: `A shitty bot written in JS`,
             color: 0x91244e,
@@ -33,7 +33,7 @@ module.exports.make = (bot) => {
         bot.createMessage(message.channel.id, {
             content: '',
             embed: embed
-        })
+        }).catch(err => console.log(err.stack))
     }, {
         description: "Returns the bot status",
         fullDescription: "Returns the bot's status, including uptime and bot owner."

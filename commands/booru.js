@@ -10,14 +10,15 @@ module.exports.make = async (bot, conn) => {
 
     await bot.registerCommand("booru", async (message, args) => {
         if (message.channel.type === 1) {
-            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"})
+                .catch(err => console.log(err));
             return
         }
         let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
-            });
+            }).catch(err => console.log(err));
             return
         }
         try {
@@ -40,8 +41,7 @@ module.exports.make = async (bot, conn) => {
                 let postCount = $('.contain-push .thumbnail-preview').length;
                 let randomIndex = Math.floor(Math.random() * postCount);
                 let randomPost = $(`.contain-push .thumbnail-preview:nth-of-type(${randomIndex > 0 ? randomIndex : 1})`);
-                let randomPostID = randomPost.find('a').attr('href').split('&id=').pop();
-                return randomPostID
+                return randomPost.find('a').attr('href').split('&id=').pop()
             })(pageListings);
             const image = await axios.get('http://gelbooru.com/index.php', {
                 params: {
@@ -65,13 +65,13 @@ module.exports.make = async (bot, conn) => {
                             value: `${image.data[0].file_url}`
                         }, {
                             name: `Rating`,
-                            value: `${image.data[0].rating == 's' ? `Safe` : image.data[0] == 'q' ? `Questionable` : `Explicit`}`
+                            value: `${image.data[0].rating === 's' ? `Safe` : image.data[0] === 'q' ? `Questionable` : `Explicit`}`
                         }],
                         image: {
                             url: `${image.data[0].file_url}`
                         }
                     }
-                })
+                }).catch(err => console.log(err))
             })(image)
         } catch (err) {
             console.error(err.stack);

@@ -5,7 +5,7 @@ const config = require('./config.json');
 const cmds = require('./commands');
 const mysql = require('mysql2/promise');
 
-var bot = new Eris.CommandClient(config.token, {}, {
+const bot = new Eris.CommandClient(config.token, {}, {
     description: "A shitty bot made with Eris in Node.js",
     owner: "EraTheMonologuer",
     prefix: config.prefix
@@ -13,6 +13,12 @@ var bot = new Eris.CommandClient(config.token, {}, {
 
 bot.on('ready', () => {
     console.log("Im alive!");
+});
+
+bot.on('disconnect', () => {
+    bot.connect().catch(err => {
+        console.log(err.stack)
+    })
 });
 
 async function initialize(cmds) {

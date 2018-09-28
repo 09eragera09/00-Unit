@@ -1,7 +1,7 @@
 "use strict";
 
 module.exports.make = (bot) => {
-    var textfaces = bot.registerCommand("textfaces", "Has the following faces: \n- lenny\n- fiteme\n- shrug\n- tableflip\n- unflip\n- hug\nYou can request for more to be added by asking the owner.", {
+    const textfaces = bot.registerCommand("textfaces", "Has the following faces: \n- lenny\n- fiteme\n- shrug\n- tableflip\n- unflip\n- hug\nYou can request for more to be added by asking the owner.", {
         description: "Sends a textface",
         fullDescription: "Sends a textface from the list below"
     });

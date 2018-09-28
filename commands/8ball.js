@@ -16,7 +16,8 @@ let basic_hash_function = (string) => {
 module.exports.make = async (bot, conn) => {
     bot.registerCommand("8ball", async (message, args) => {
         if (message.channel.type === 1) {
-            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"})
+                .catch(err => console.log(err));
             return
         }
         let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn).catch(err => {
@@ -25,7 +26,7 @@ module.exports.make = async (bot, conn) => {
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
-            });
+            }).catch(err => console.log(err));
             return
         }
         let _8ball_array = [
@@ -45,19 +46,10 @@ module.exports.make = async (bot, conn) => {
         _8ball_reply_group = _8ball_array[basic_hash_function(lc_argument_string) % _8ball_array.length];
         bot.createMessage(message.channel.id, {
             content: `${_8ball_reply_group[random(_8ball_reply_group.length - 1)]}`
-        });
+        }).catch(err => console.log(err));
 
     }, {
         description: "Magic 8ball will help you solve all your troubles",
         fullDescription: "Returns 1 of 8 yes/no/maybe messages."
     })
-};
-
-module.exports.sad = async function checkEnabled(message, moduleName) {
-    let [serverRes, Serverfields] = await con.execute(`SELECT * FROM servers where code = ${message.channel.guild.id};`);
-    let [commandRes, Commandfields] = await con.execute(`SELECT * FROM commands where name = "${moduleName}";`);
-    let [res, fields] = await con.execute(`SELECT * FROM whiteListedCommands where commandID = ${commandRes[0].id} AND serverID = ${serverRes[0].id};`);
-    if (res.length === 0) {
-        return false;
-    }
 };

@@ -6,38 +6,40 @@ const moment = require('moment');
 
 module.exports.make = async (bot, conn) => {
     bot.registerCommand("userinfo", async (message, args) => {
-        if (message.channel.type == 1) {
-            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+        let username;
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"})
+                .catch(err => console.log(err));
             return
         }
         let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
-            });
+            }).catch(err => console.log(err));
             return
         }
-        if (args == 0) {
-            var username = message.author.username
+        if (args.length === 0) {
+            username = message.author.username;
         }
         else if (message.mentions.length > 0 && !message.mentionEveryone) {
-            var username = message.mentions[0].username
+            username = message.mentions[0].username;
         }
         else {
-            var username = args[0]
+            username = args[0];
         }
         //This is going to be slow as shit....
-        var member = message.channel.guild.members.find(m => {
-            if (m.username == username || m.nick == username) return true;
+        const member = message.channel.guild.members.find(m => {
+            if (m.username === username || m.nick === username) return true;
         });
         if (member === undefined) {
             bot.createMessage(message.channel.id, {
                 content: "User not found. Please check if there are typos. Search terms are case sensitive."
-            });
+            }).catch(err => console.log(err));
             return
         }
-        var id = message.channel.guild.members.get(member.id);
-        var embed = {
+        console.log(member);
+        const embed = {
             color: 0x91244e,
             type: 'rich',
             author: {
@@ -85,7 +87,7 @@ module.exports.make = async (bot, conn) => {
         bot.createMessage(message.channel.id, {
             content: '',
             embed: embed
-        })
+        }).catch(err => console.log(err))
     }, {
         description: 'Gets info on a user',
         fullDescription: "Gets full info on a user, including game playing, creation and join date"

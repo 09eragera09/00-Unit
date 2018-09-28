@@ -58,11 +58,12 @@ module.exports.make = async (bot, conn) => {
                     }
                 });
                 let $ = cheerio.load(page.data);
+                let userReviewDiv = $('div.user_reviews');
                 let SteamInfo = {
                     name: `${item.name}`,
                     description: `${$('div.game_description_snippet').text()}`,
-                    recent_reviews: `${$('div.user_reviews').children('.user_reviews_summary_row').first().find('.game_review_summary').text()}`,
-                    all_reviews: `${$('div.user_reviews').children('.user_reviews_summary_row').last().find('.game_review_summary').text()}`,
+                    recent_reviews: `${userReviewDiv.children('.user_reviews_summary_row').first().find('.game_review_summary').text()}`,
+                    all_reviews: `${userReviewDiv.children('.user_reviews_summary_row').last().find('.game_review_summary').text()}`,
                     release: `${$('div.release_date div.date').text()}`,
                     dev: `${$('div#developers_list a').text()}`,
                     pageURL: `${item.link}`,

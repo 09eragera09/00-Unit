@@ -3,19 +3,23 @@ const toggle = require('../commands/toggle');
 const path = require('path');
 let moduleName = path.basename(__filename);
 
-module.exports.make = async (bot, conn) => {
+//TODO FIX THIS FUCKING THING YOU AUTISTIC FUCK
 
+module.exports.make = async (bot, conn) => {
+    ``;
     bot.registerCommand("spoiler", async (message, args) => {
         if (message.channel.type === 1) {
-            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"})
+                .catch(err => console.log(err.stack));
             return
         }
-        bot.deleteMessage(message.channel.id, message.id, undefined);
+        bot.deleteMessage(message.channel.id, message.id, undefined)
+            .catch(err => console.log(err.stack));
         let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
-            });
+            }).catch(err => console.log(err.stack));
             return
         }
         if (args.length < 2) {
@@ -41,7 +45,7 @@ module.exports.make = async (bot, conn) => {
             content: '',
             embed: embed
         }).then(m => {
-            m.addReaction("🍌")
+            m.addReaction("🍌").catch(err => console.log(err.stack))
         })
     }, {
         description: "Parses spoilers",
@@ -79,7 +83,7 @@ module.exports.make = async (bot, conn) => {
                     bot.createMessage(res.id, {
                         content: '',
                         embed: embed,
-                    })
+                    }).catch(err => console.log(err.stack))
                 });
             }
             } catch (err) {

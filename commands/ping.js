@@ -6,18 +6,21 @@ let moduleName = path.basename(__filename);
 module.exports.make = (bot, conn) => {
     bot.registerCommand("ping", async (message) => {
         if (message.channel.type === 1) {
-            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"});
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"})
+                .catch(err => console.log(err.stack));
             return
         }
         let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
         if (!enabled) {
             bot.createMessage(message.channel.id, {
                 content: res
+            }).catch((err) => {
+                console.log(err.stack)
             });
             return
         }
-        var before = new Date();
-        var mEmbd = {
+        const before = new Date();
+        const mEmbd = {
             color: 0x91244e,
             author: {
                 name: `${message.author.username}#${message.author.discriminator}`,
