@@ -34,5 +34,8 @@
     "vndb": "^0.1.0",
     "vndbjs": "^1.0.1",
     "xregexp": "^4.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.4"
   }
 }
