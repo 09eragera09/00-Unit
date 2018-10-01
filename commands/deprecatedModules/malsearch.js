@@ -1,6 +1,5 @@
 'use strict';
 const popura = require('popura');
-const config = require('../../config.json');
 const Entities = require('html-entities').AllHtmlEntities;
 const entities = new Entities();
 const toggle = require('../toggle');
@@ -74,7 +73,7 @@ module.exports.make = async (bot, conn) => {
         };
         return (embed)
     };
-    const client = popura(config.username, config.malpassword);
+    const client = popura(process.env.MYANIMELIST_USERNAME, process.env.MYANIMELIST_PASSWORD);
 
     function popuraSearchResolve(animeArray, embedAll, message, invokedWith) {
         let embed;

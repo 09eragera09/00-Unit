@@ -5,10 +5,12 @@ const toggle = require('../commands/toggle');
 const path = require('path');
 const helperFunctions = require("../commands/helperFunctions/helperFunctions");
 const moduleName = path.basename(__filename);
-const apikey = require('../config').itadkey;
 const moment = require('moment');
 const igdb = require('igdb-api-node').default;
-const igdbClient = igdb("79fd60f10c724bfbc2547fd255c37bd2");
+
+const igdbClient = igdb(process.env.IGDB_KEY);
+
+const itadApiKey = process.env.ITAD_KEY;
 
 module.exports.make = async (bot, conn) => {
     await bot.registerCommand('itad', async (message, args) => {
@@ -60,13 +62,13 @@ module.exports.make = async (bot, conn) => {
             }, arr, async (item, bot) => {
                 //let shops = ['origin', 'voidu', 'gog', 'steam', 'uplay', 'fanatical', 'gamesplanet', 'indiegala', 'greenmangaming'];
                 let plainItem = await axios({
-                    url: `https://api.isthereanydeal.com/v02/game/plain/?key=${apikey}&title=${item.name}`
+                    url: `https://api.isthereanydeal.com/v02/game/plain/?key=${itadApiKey}&title=${item.name}`
                 });
                 let prices = await axios({
-                    url: `https://api.isthereanydeal.com/v01/game/prices/?key=${apikey}&plains=${plainItem.data.data.plain}&region=us&country=SK`
+                    url: `https://api.isthereanydeal.com/v01/game/prices/?key=${itadApiKey}&plains=${plainItem.data.data.plain}&region=us&country=SK`
                 });
                 let historicalLow = await axios({
-                    url: `https://api.isthereanydeal.com/v01/game/lowest/?key=${apikey}&plains=${plainItem.data.data.plain}&region=us&country=SK`
+                    url: `https://api.isthereanydeal.com/v01/game/lowest/?key=${itadApiKey}&plains=${plainItem.data.data.plain}&region=us&country=SK`
                 });
                 prices = prices.data.data;
                 historicalLow = historicalLow.data.data;
