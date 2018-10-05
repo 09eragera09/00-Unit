@@ -1,4 +1,5 @@
 "use strict";
+const config = require('../config.json');
 const fs = require('fs');
 
 module.exports.make = async (bot, con) => {
@@ -36,7 +37,7 @@ module.exports.make = async (bot, con) => {
     `);
 
     let files = fs.readdirSync('commands/');
-    process.env.REQUIRED_MODULES.split(' ').forEach(i => {
+    config.required_modules.split(' ').forEach(i => {
         let moduleIndex = files.indexOf(i);
         if (moduleIndex !== -1) {
             files.splice(moduleIndex, 1)
@@ -94,7 +95,7 @@ module.exports.make = async (bot, con) => {
         con.query(`SELECT *
                    FROM commands;`, (err, res) => {
             let moduleList = fs.readdirSync('commands/');
-            process.env.REQUIRED_MODULES.split(' ').forEach(i => {
+            config.required_modules.split(' ').forEach(i => {
                 moduleList.splice(moduleList.indexOf(i), 1)
             });
             let commandArray = [];
@@ -110,7 +111,7 @@ module.exports.make = async (bot, con) => {
                     name: `List of bot modules`,
                     icon_url: `${bot.user.avatarURL}`
                 },
-                description: `Here is a list of toggleable modules. To enable/disable, use \\${process.env.DISCORD_COMMAND_PREFIX}enable and \\${process.env.DISCORD_COMMAND_PREFIX}disable with the module's id, multiple modules seperated by space. To enable all, do '\\${process.env.DISCORD_COMMAND_PREFIX}enable all'. To see what a module does and the commands it has, do \\${process.env.DISCORD_COMMAND_PREFIX}help \n`,
+                description: `Here is a list of toggleable modules. To enable/disable, use \\${config.prefix}enable and \\${config.prefix}disable with the module's id, multiple modules seperated by space. To enable all, do '\\${config.prefix}enable all'. To see what a module does and the commands it has, do \\${config.prefix}help \n`,
                 fields: []
             };
             commandArray.forEach(i => {
@@ -138,7 +139,7 @@ module.exports.make = async (bot, con) => {
             if (m.id === message.author.id) return true;
         });
         let roleList = member.roles.map(r => message.channel.guild.roles.get(r).name);
-        if (member.id === process.env.DISCORD_OWNER_ID || roleList.indexOf(process.env.DISCORD_ADMIN_ROLE) !== -1) {
+        if (member.id === config.ownerID || roleList.indexOf(config.admin_role) !== -1) {
             let [serverRes] = await con.query(`SELECT *
                                                FROM servers
                                                where code = ?;`, [message.channel.guild.id]);
@@ -179,7 +180,7 @@ module.exports.make = async (bot, con) => {
                 .catch(err => console.log(err));
 
         } else {
-            bot.createMessage(message.channel.id, {content: `You do not have the ${process.env.DISCORD_ADMIN_ROLE} role.`})
+            bot.createMessage(message.channel.id, {content: `You do not have the ${config.admin_role} role.`})
                 .catch(err => console.log(err));
         }
     });
@@ -199,7 +200,7 @@ module.exports.make = async (bot, con) => {
             if (m.id === message.author.id) return true;
         });
         let roleList = member.roles.map(r => message.channel.guild.roles.get(r).name);
-        if (member.id === process.env.DISCORD_OWNER_ID || roleList.indexOf(process.env.DISCORD_ADMIN_ROLE) !== -1) {
+        if (member.id === config.ownerID || roleList.indexOf(config.admin_role) !== -1) {
             let [serverRes] = await con.query(`SELECT *
                                                FROM servers
                                                where code = ?;`, [message.channel.guild.id]);
@@ -244,7 +245,7 @@ module.exports.make = async (bot, con) => {
                 .catch(err => console.log(err));
 
         } else {
-            bot.createMessage(message.channel.id, {content: `You do not have the ${process.env.DISCORD_ADMIN_ROLE} role.`})
+            bot.createMessage(message.channel.id, {content: `You do not have the ${config.admin_role} role.`})
                 .catch(err => console.log(err));
         }
     });
@@ -275,14 +276,14 @@ module.exports.make = async (bot, con) => {
                 name: `List of bot modules`,
                 icon_url: `${bot.user.avatarURL}`
             },
-            description: `List of enabled modules. To disable, use \\${process.env.DISCORD_COMMAND_PREFIX}disable with the module's id, multiple modules seperated by space. To see what a module does and the commands it has, do \\${process.env.DISCORD_COMMAND_PREFIX}help \n`,
+            description: `List of enabled modules. To disable, use \\${config.prefix}disable with the module's id, multiple modules seperated by space. To see what a module does and the commands it has, do \\${config.prefix}help \n`,
             fields: []
         };
         moduleList.forEach(i => {
             embedAll.description = embedAll.description + `\nID ${i.id}: ${i.name}`
         });
         if (moduleList.length === 0) {
-            embedAll.description = embedAll.description + `\nNo modules enabled, do \\${process.env.DISCORD_COMMAND_PREFIX}modules to see available modules.`
+            embedAll.description = embedAll.description + `\nNo modules enabled, do \\${config.prefix}modules to see available modules.`
         }
         bot.createMessage(message.channel.id, {
             content: '',
@@ -304,7 +305,7 @@ module.exports.checkEnabled = async function (guildID, moduleName, con) {
         AND commands.name = ?
     `, [guildID, moduleName]);
     if (res.length === 0) {
-        return [false, `The ${moduleName.split('.')[0]} module has been disabled by the admins. To enable, do \\${process.env.DISCORD_COMMAND_PREFIX}modules `]
+        return [false, `The ${moduleName.split('.')[0]} module has been disabled by the admins. To enable, do \\${config.prefix}modules `]
     } else {
         return [true, null];
     }
