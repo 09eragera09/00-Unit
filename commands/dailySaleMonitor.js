@@ -5,6 +5,7 @@ const toggle = require('../commands/toggle');
 const path = require('path');
 const apikey = require('../config').itadkey;
 let moduleName = path.basename(__filename);
+const cheerio = require('cheerio');
 const fs = require('fs');
 
 module.exports.make = (bot, conn) => {
@@ -46,15 +47,18 @@ module.exports.make = (bot, conn) => {
                 //TODO Make sure there is actually a valid username in there
                 let steamWishlist = await axios.get(`https://store.steampowered.com/wishlist/id/${users[i].steamUsername}/`);
                 let wishlistData = JSON.parse(/g_rgWishlistData\s=\s(.+?);/gm.exec(steamWishlist.data)[1]);
+                let gameInfo = JSON.parse(/g_rgAppInfo\s=\s(.+?);/gm.exec(steamWishlist.data)[1]);
                 wishlistData.forEach(j => {
+                    let gameName = gameInfo[j.appid].name;
                     userData[users[i].userID].steam.push({
-                        'appid': j.appid
+                        'appid': {id: j.appid, name: gameName}
                     })
                 });
             }
         }
         let steamGameArray = returnAllSteamGamesInArray(userData);
         let steamPlain = await axios.get(`https://api.isthereanydeal.com/v01/game/plain/id/?key=${apikey}&shop=steam&ids=app/${steamGameArray.join(',app/')}`); //TODO make sure not making an empty
+        let plainToID = swap(steamPlain.data.data);
         let steamPlainArray = [];
         Object.keys(steamPlain.data.data).forEach(i => {
             steamPlainArray.push(steamPlain.data.data[i])
@@ -65,15 +69,24 @@ module.exports.make = (bot, conn) => {
             let priceData = cheapestCalculate(i, priceJSON.data.data[i]);
             priceArray.push(priceData)
         });
+        console.log(plainToID);
+        for (let i = 0; i < priceArray.length; i++) {
+            priceArray[i] = {[plainToID[Object.keys(priceArray)[i]]]: priceArray[i]}
+        }
+        console.log(priceArray);
+
         Object.keys(userData).forEach(i => {
-            let dealArray = checkThreshold(i, priceArray, steamPlain.data.data);
+            let dealArray = checkThreshold(userData[i], priceArray, steamPlain.data.data);
+
             if (dealArray.length > 0) {
-                bot.getDMChannel(Object.keys(i)[0])
+                bot.getDMChannel(i)
                     .then(res => {
                         let dealGreeting = "You have deals!\n\n";
                         dealArray.forEach(i => {
-                            dealGreeting += `\t- ${i.plain} is `
-                        })
+                            dealGreeting += `\t- ${i.plain} is on sale for ${i.deal.price_cut}% on ${i.deal.shop.name}. Visit here ${i.deal.url}`
+                        });
+
+                        bot.createMessage(res.id, {content: dealGreeting})
                     })
                     .catch(err => {
                         console.log(err)
@@ -82,12 +95,19 @@ module.exports.make = (bot, conn) => {
         });
     });
 
+    function swap(json) {
+        let ret = {};
+        for (let key in json) {
+            ret[json[key]] = key;
+        }
+        return ret;
+    }
 
     function returnAllSteamGamesInArray(userData) {
         let games = [];
         Object.keys(userData).forEach(i => {
             userData[i].steam.forEach(j => {
-                games.push(j.appid)
+                games.push(j.appid.id)
             })
         });
         return games
@@ -119,13 +139,15 @@ module.exports.make = (bot, conn) => {
 
     function checkThreshold(user, priceArray) {
         let deals = [];
-        let threshold = Object.keys(user)[0].threshold;
+        console.log(JSON.stringify(user));
+        let threshold = 10;
         //TODO Figure out a way to filter out games not in user's wishlist
         //TODO Maybe instead have the dealArray be a catalogue of _all_ user deals, rather than just one, then you just iterate over it all, it takes less looping overall I think?
         //TODO basically if you loop the plain array and the game ID array for every user, itll take more time than if you looped every user per game
         priceArray.forEach(i => {
-            if (i.deal.price_cut > (100 - threshold)) {
-                deals.push(i)
+
+            if (i.deal.price_cut > threshold) {
+                deals.push(i);
             }
         });
         return deals
