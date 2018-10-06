@@ -32,7 +32,8 @@ module.exports.make = async (bot, con) => {
         id            int PRIMARY KEY AUTO_INCREMENT,
         userID        varchar(255) NOT NULL,
         salePercent   int(3)          DEFAULT 75,
-        steamUsername varchar(255) NOT NULL
+        steamUsername varchar(255) NOT NULL,
+        CONSTRAINT UNIQUE (userID)
       );
     `);
 
