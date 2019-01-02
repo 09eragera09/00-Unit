@@ -1,28 +1,46 @@
 "use strict";
 
 const Eris = require('eris');
-var config = require('./config.json');
-var cmds = require('./commands');
+const config = require('./config.json');
+const cmds = require('./commands');
+const mysql = require('mysql2/promise');
 
-var bot = new Eris.CommandClient(config.token, {}, {
+const bot = new Eris.CommandClient(config.token, {}, {
     description: "A shitty bot made with Eris in Node.js",
-    owner: "09eragera09",
+    owner: "EraTheMonologuer",
     prefix: config.prefix
 });
 
 bot.on('ready', () => {
     console.log("Im alive!");
 });
-for (let o in cmds) {
-    cmds[o].make(bot)
+
+bot.on('disconnect', () => {
+    bot.connect().catch(err => {
+        console.log(err.stack)
+    })
+});
+
+async function initialize(cmds) {
+    let con = await mysql.createConnection({
+        host: "localhost",
+        user: config.sql_user,
+        password: config.sql_pass,
+    });
+    setInterval(function () {
+        con.query('SELECT 1');
+    }, 5000);
+
+    for (let o in cmds) {
+        if (cmds[o].make) {
+            cmds[o].make(bot, con)
+        }
+    }
 }
 
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-async function start(bot){
-    bot.connect();
-    await sleep(10000);
-    await start(bot);
-}
-start(bot);
+initialize(cmds).catch((err) => {
+    console.log(err.stack)
+});
+bot.connect().catch(err => {
+    console.log(err.stack)
+});

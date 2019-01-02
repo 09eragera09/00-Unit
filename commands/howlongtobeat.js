@@ -1,63 +1,78 @@
 "use strict";
-
+const toggle = require('../commands/toggle');
+const path = require('path');
 const hltb = require("howlongtobeat");
-const hltbService = new hltb.HowLongToBeatService()
+const hltbService = new hltb.HowLongToBeatService();
+const axios = require('axios');
+const cheerio = require("cheerio");
+const helperFunctions = require("../commands/helperFunctions/helperFunctions");
+let moduleName = path.basename(__filename);
 
-module.exports.make = async (bot) => {
-    await bot.registerCommand('hltb',async (message, argv) => {
-        let embedAll = {
-            color: 0x91244e,
-            type: 'rich',
-            author: {
-                name: `HowLongToBeat search for term "${argv.join(' ')}"`,
-                icon_url: `${bot.user.avatarURL}`
+module.exports.make = async (bot, conn) => {
+    await bot.registerCommand('hltb', async (message, argv) => {
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"}).catch((err) => {
+                console.log(err.stack)
+            });
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            }).catch((err) => {
+                console.log(err.stack)
+            });
+            return
+        }
+        let res1 = await hltbService.search(argv.join(' '));
+        helperFunctions.serviceSearch(bot, message, {
+            service: {
+                name: "HowLongToBeat"
             },
-            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
-            fields: []
-        }
-        let res1 = await hltbService.search(argv.join(' '))
-        if (res1.length == 0) { bot.createMessage(message.channel.id, {content: "Search returned no results."})}
-        else if (res1.length == 1) {
-            var embed = hltbEmbed(res1[0]);
-            bot.createMessage(message.channel.id, {content:'', embed: embed})
-        }
-        else if (res1.length > 1) {
-            for (var i = 0; i < res1.length; i++) {
-                embedAll.description = embedAll.description + `\n${i+1}: ${res1[i].name}`
+            query: `${argv.join(" ")}`
+        }, res1, async (item, bot) => {
+            let hltbURL = `https://howlongtobeat.com/game.php?id=${item.id}`;
+            let request = await axios.request({
+                url: hltbURL,
+                method: 'get'
+            });
+            let $ = cheerio.load(request.data);
+            let timeObject = {};
+            $('.game_times > li').each(function () {
+                timeObject[$(this).children('h5').text()] = $(this).children('div').text()
+            });
+            let embed = {
+                color: 0x91244e,
+                type: 'rich',
+                author: {
+                    name: `${item.name}`,
+                    icon_url: `${item.imageUrl.replace(' ', '%20')}`
+                },
+                description: hltbURL,
+                thumbnail: {
+                    url: `${item.imageUrl.replace(' ', '%20')}`
+                },
+                fields: [],
+                footer: {
+                    text: `Search provided by ${bot.user.username}, a shitty bot written in JS by EraTheMonologuer`,
+                    icon_url: bot.user.avatarURL
+                }
+            };
+            Object.keys(timeObject).forEach(i => {
+                embed.fields.push({
+                    name: i,
+                    value: timeObject[i]
+                })
+            });
+            if (Object.keys(timeObject).length === 0) {
+                embed.description += "\nNothing Found"
             }
-            bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
-                setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
-                    messageArray.forEach((mesg) => {
-                        if (mesg.author == message.author && parseInt(mesg.content) <= res1.length) {
-                            var embedS = hltbEmbed(res1[parseInt(mesg.content) - 1])
-                            bot.createMessage(message.channel.id, {content: '', embed: embedS})
-                        }
-                    })
-                }).catch(err => console.log(err))}, 7000)
-            })
-        }
-    })
-    function hltbEmbed(hltbRes) {
-        let embed = {
-            color: 0x91244e,
-            type: 'rich',
-            author: {
-                name: `${hltbRes.name}`,
-                icon_url: `${hltbRes.imageUrl}`
-            },
-            description: `https://howlongtobeat.com/game.php?id=${hltbRes.id}`,
-            thumbnail: {
-                url: `${hltbRes.imageUrl}`
-            },
-            fields: [
-                {name: 'Main Story', value: `${hltbRes.gameplayMain} hours`},
-                {name: 'Completionist', value: `${hltbRes.gameplayCompletionist} hours`}
-            ],
-            footer: {
-                text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
-                icon_url: bot.user.avatarURL
-            }
-        }
-        return(embed)
-    }
-}
+            return (embed)
+        }).catch((err) => {
+            console.log(err.stack)
+        })
+    }, {
+        description: "Generic HowLongToBeat search",
+    });
+};

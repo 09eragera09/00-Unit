@@ -2,82 +2,80 @@
 const VNDB = require("vndb");
 const Entities = require('html-entities').AllHtmlEntities;
 const entities = new Entities();
+const toggle = require('../commands/toggle');
+const path = require('path');
+const helperFunctions = require("../commands/helperFunctions/helperFunctions");
+let moduleName = path.basename(__filename);
 
-module.exports.make = async (bot) => {
+module.exports.make = async (bot, conn) => {
     const vndb = await VNDB.start();
-    const res0 = await vndb.write('login {"protocol":1,"client":"SumikaSearch","clientver":"0.0.1"}')
+    await vndb.write('login {"protocol":1,"client":"SumikaSearch","clientver":"0.0.1"}');
     await bot.registerCommand("vndb", async (message, argv) => {
-        let embedAll = {
-            color: 0x91244e,
-            type: 'rich',
-            author: {
-                name: `VNDB search for term "${argv.join(' ')}"`,
-                icon_url: `${bot.user.avatarURL}`
-            },
-            description: `The search contains more than 1 result. Please reply with the appropriate entry number in order to view its details.\n`,
-            fields: []
+        if (message.channel.type === 1) {
+            bot.createMessage(message.channel.id, {content: "Bot disabled in DM channels"}).catch((err) => {
+                console.log(err.stack)
+            });
+            return
+        }
+        let [enabled, res] = await toggle.checkEnabled(message.channel.guild.id, moduleName, conn);
+        if (!enabled) {
+            bot.createMessage(message.channel.id, {
+                content: res
+            }).catch((err) => {
+                console.log(err.stack)
+            });
+            return
         }
         let fuckme = await vndb.write(`get vn basic,details,stats (search ~ "${argv.join(' ')}"){"sort": "rating", "reverse": true}`);
         let res1 = JSON.parse(fuckme.substring('results '.length));
-        if (res1.items.length == 0) { bot.createMessage(message.channel.id, {content: "Search returned no results."})}
-        else if (res1.items.length == 1) {
-            var embed = vndbEmbed(res1.items[0]);
-            bot.createMessage(message.channel.id, {content:'', embed: embed})
+        for (let i = 0; i < res1.items.length; i++) {
+            res1.items[i].name = res1.items[i].title
         }
-        else if (res1.items.length > 1) {
-            for (var i = 0; i < res1.items.length; i++) {
-                /*let element = {};
-                element.name = '​​';
-                element.value = String(i+1) + ': ' + res1.items[i].title;
-                embedAll.fields.push(element);*/
-                embedAll.description = embedAll.description + `\n${i+1}: ${res1.items[i].title}`
+        helperFunctions.serviceSearch(bot, message, {
+            service: {
+                name: "VNDB"
+            },
+            query: `${argv.join(' ')}`
+        }, res1.items, (item, bot) => {
+            if (item.description.length >= 1024) {
+                item.description = item.description.slice(0, 1019);
+                item.description += '...'
             }
-            bot.createMessage(message.channel.id, {content: '', embed: embedAll}).then((msg) => {
-                setTimeout( () => {bot.getMessages(msg.channel.id, 10, undefined, msg.id).then((messageArray) => {
-                    messageArray.forEach((mesg) => {
-                        if (mesg.author == message.author && parseInt(mesg.content) <= res1.items.length) {
-                            var embedS = vndbEmbed(res1.items[parseInt(mesg.content) - 1])
-                            bot.createMessage(message.channel.id, {content: '', embed: embedS})
-                        }
-                    })
-                }).catch(err => console.log(err))}, 7000)
-            })
-        }
-        function vndbEmbed(vndbRes) {
-            if (vndbRes.description.length >= 1024) {
-                vndbRes.description = vndbRes.description.slice(0, 1019);
-                vndbRes.description += '...'
+            else if (item.description.length <= 0) {
+                item.description = "No Synopsis."
             }
-            else if (vndbRes.description.length <= 0) {
-                vndbRes.description = "No Synopsis."
-            }
-            vndbRes.description = entities.decode(vndbRes.description);
+            item.description = entities.decode(item.description);
             let embed = {
                 color: 0x91244e,
                 type: 'rich',
                 author: {
-                    name: `${vndbRes.title}`,
-                    icon_url: `${vndbRes.image}`
+                    name: `${item.title}`,
+                    icon_url: `${item.image}`
                 },
-                description: `https://vndb.org/v${vndbRes.id}`,
+                description: `https://vndb.org/v${item.id}`,
                 thumbnail: {
-                    url: `${vndbRes.image}`
+                    url: `${item.image}`
                 },
                 fields: [
-                    {name: 'Description', value: `${vndbRes.description}`},
-                    {name: 'Length', value: `${vndbRes.length == 5 ? 'Very Long (> 50 hours)': vndbRes.length == 4 ? "Long (30-50 hours)": vndbRes.length == 3 ? "Medium (10-30 hours)": vndbRes.length == 2 ? "Short (2-10 hours)": vndbRes.length == 1 ? "Very Short (< 2 hours)": "Length could not be deciphered!!11!"}`},
-                    {name: 'Rating', value: `${vndbRes.rating}`},
-                    {name: 'Original Language', value: `${vndbRes.orig_lang}`}
+                    {name: 'Description', value: `${item.description}`},
+                    {
+                        name: 'Length',
+                        value: `${item.length === 5 ? 'Very Long (> 50 hours)' : item.length === 4 ? "Long (30-50 hours)" : item.length === 3 ? "Medium (10-30 hours)" : item.length === 2 ? "Short (2-10 hours)" : item.length === 1 ? "Very Short (< 2 hours)" : "Length could not be deciphered!!11!"}`
+                    },
+                    {name: 'Rating', value: `${item.rating}`},
+                    {name: 'Original Language', value: `${item.orig_lang}`}
                 ],
                 footer: {
                     text: "Search provided by 00-Unit, a shitty bot written in JS by EraTheMonologuer",
                     icon_url: bot.user.avatarURL
                 }
-            }
-            return(embed)
-        }
+            };
+            return (embed)
+        }).catch((err) => {
+            console.log(err.stack)
+        });
     }, {
         description: "Generic vndb search",
         fullDescription: "Searches vndb for vn names and returns items from returned search list."
     })
-}
+};
