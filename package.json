@@ -17,7 +17,7 @@
   },
   "homepage": "https://github.com/09eragera09/00-Unit#readme",
   "dependencies": {
-    "axios": "^0.17.1",
+    "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.2",
     "d20": "^1.4.1",
     "eris": "^0.8.5",
